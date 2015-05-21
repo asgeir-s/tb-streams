@@ -24,7 +24,7 @@ class PostSignalActorTest extends MessagingTest {
     val actor = TestActorRef(PostSignalActor.props("test-stream1", testTableName), "postSignalActor1")
     val underlyingActor = actor.underlyingActor.asInstanceOf[PostSignalActor]
     assert(underlyingActor.context.children isEmpty)
-    actor ! TestData.signal1
+    actor ! Seq(TestData.signal1)
     assert(underlyingActor.context.children nonEmpty)
   }
 
@@ -32,7 +32,7 @@ class PostSignalActorTest extends MessagingTest {
     "respond with NoContent" in {
     val interface = TestProbe()
     val actor = TestActorRef(PostSignalActor.props("test-stream2", testTableName), "postSignalActor2")
-    interface.send(actor, TestData.signal1) // become responder
+    interface.send(actor, Seq(TestData.signal1)) // become responder
     actor ! StreamDoesNotExistException("something")
     val responds = interface.expectMsgType[HttpResponse]
     responds.status == NoContent

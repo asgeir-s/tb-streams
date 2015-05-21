@@ -25,7 +25,7 @@ class CalculateStatsActorTest extends MessagingTest {
     "calculate the 'Stream.Stats' and respond with the 'Stream'" in {
     val asker = TestProbe()
     val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName), "calculateStatsActor1")
-    asker.send(actor, TestData.signal1)
+    asker.send(actor, Seq(TestData.signal1))
     val responds = asker.expectMsgType[SStream]
   }
 
