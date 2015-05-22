@@ -12,6 +12,7 @@ case class SStream(
   currencyPair: String,
   apiKey: String,
   status: Int,
+  idOfLastSignal: Long,
   stats: StreamStats = StreamStats(),
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
@@ -49,13 +50,13 @@ case class StreamStats(
   averageMonthlyProfitExcl: BigDecimal = 0,
   monthsOfTrading: BigDecimal = 0,
   maxDrawDown: BigDecimal = 0,
-  allTimeProfitIncl: BigDecimal = 0,
-  allTimeProfitExcl: BigDecimal = 0,
+  allTimeValueIncl: BigDecimal = 1,
+  allTimeValueExcl: BigDecimal = 1,
   firstPrice: BigDecimal = 0
   )
 
 case class ComputeComponents(
-  maxDDPrevMax: BigDecimal = 0,
-  maxDDPrevMin: BigDecimal = 0,
-  maxDDMax: BigDecimal = 0
+  maxDDPrevMax: BigDecimal = 1,
+  maxDDPrevMin: BigDecimal = 1,
+  maxDDMax: BigDecimal = 1
   )

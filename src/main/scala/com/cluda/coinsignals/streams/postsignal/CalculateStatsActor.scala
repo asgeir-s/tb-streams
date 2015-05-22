@@ -5,7 +5,7 @@ import awscala._
 import awscala.dynamodbv2.{DynamoDB, Table}
 import com.cluda.coinsignals.streams.model.Signal
 import com.cluda.coinsignals.streams.protocoll.{DuplicateSignal, StreamDoesNotExistException}
-import com.cluda.coinsignals.streams.util.{StatsUtil, DatabaseUtil}
+import com.cluda.coinsignals.streams.util.{StreamUtil, DatabaseUtil}
 
 class CalculateStatsActor(streamID: String, tableName: String) extends Actor with ActorLogging {
 
@@ -43,7 +43,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
             sender() ! DuplicateSignal("same as last signal")
           }
           else {
-            val stats = StatsUtil.updateStreamWitheNewSignal(stream.get, signal)
+            val stats = StreamUtil.updateStreamWitheNewSignal(stream.get, signal)
             DatabaseUtil.putStream(dynamoDB, streamsTable, stats)
             stats
           }

@@ -19,6 +19,7 @@ object DatabaseUtil {
       "currencyPair" -> stream.currencyPair,
       "apiKey" -> stream.apiKey,
       "status" -> stream.status,
+      "idOfLastSignal" -> stream.idOfLastSignal,
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
       "numberOfSignals" -> stream.stats.numberOfSignals,
@@ -52,7 +53,7 @@ object DatabaseUtil {
    * @return
    */
   def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream): String = {
-    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, newStream.apiKey, 0))
+    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, newStream.apiKey, 0, 0))
   }
 
 
@@ -103,6 +104,7 @@ object DatabaseUtil {
         currencyPair = attrMap("currencyPair"),
         apiKey = attrMap("apiKey"),
         status = attrMap("status").toInt,
+        idOfLastSignal = attrMap("idOfLastSignal").toLong,
         stats = stats,
         computeComponents = cComponents
       )
