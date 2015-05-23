@@ -22,7 +22,6 @@ case class SStream(
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
-      """ "apiKey": """" + apiKey + """",""" +
       """ "status": """" + status + """",""" +
       """ "stats": """ + stats.toJson.compactPrint + """}"""
     println(json)
@@ -40,7 +39,7 @@ case class StreamStats(
   accumulatedProfit: BigDecimal = 0,
   accumulatedLoss: BigDecimal = 0,
   averageTrade: BigDecimal = 0,
-  partProfitableTrades: BigDecimal = 0,
+  partWinningTrades: BigDecimal = 0,
   partLoosingTrades: BigDecimal = 0,
   profitFactor: BigDecimal = 0,
   buyAndHoldChange: BigDecimal = 0,

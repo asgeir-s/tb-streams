@@ -82,6 +82,7 @@ object StreamUtil {
       }
     }
 
+    // max draw down
     val cComponents: ComputeComponents =
       if (stream.stats.numberOfSignals == 0) {
         ComputeComponents(signal.value, signal.value, 1)
@@ -106,6 +107,8 @@ object StreamUtil {
       } else {
         (BigDecimal(1) / cComponents.maxDDPrevMax) * absMaxDrawDown
       }
+
+
 
     val streamDuration = signal.timestamp - timeOfFirstSignal.getOrElse(stream.stats.timeOfFirstSignal)
 
@@ -161,7 +164,7 @@ object StreamUtil {
       }
 
     val profitFactor: BigDecimal =
-      if ((accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)) == 0) {
+      if (accumulatedLoss.getOrElse(stream.stats.accumulatedLoss) == BigDecimal(0)) {
         BigDecimal(0)
       } else {
         accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) / accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)
@@ -169,7 +172,7 @@ object StreamUtil {
       }
 
     val buyAndHoldChange: BigDecimal =
-      if (firstPrice.getOrElse(stream.stats.firstPrice) * (signal.price - firstPrice.getOrElse(stream.stats.firstPrice)) == 0) {
+      if (firstPrice.getOrElse(stream.stats.firstPrice) * (signal.price - firstPrice.getOrElse(stream.stats.firstPrice)) == BigDecimal(0)) {
         BigDecimal(0)
       } else {
         1 / firstPrice.getOrElse(stream.stats.firstPrice) * (signal.price - firstPrice.getOrElse(stream.stats.firstPrice))
@@ -185,7 +188,7 @@ object StreamUtil {
       accumulatedProfit = accumulatedProfit.getOrElse(stream.stats.accumulatedProfit),
       accumulatedLoss = accumulatedLoss.getOrElse(stream.stats.accumulatedLoss),
       averageTrade = averageTrade,
-      partProfitableTrades = partProfitableTrades,
+      partWinningTrades = partProfitableTrades,
       partLoosingTrades = partLoosingTrades,
       profitFactor = profitFactor,
       buyAndHoldChange = buyAndHoldChange,
@@ -233,7 +236,7 @@ object StreamUtil {
         stream1.stats.numberOfProfitableTrades == stream2.stats.numberOfProfitableTrades &&
         stream1.stats.numberOfSignals == stream2.stats.numberOfSignals &&
         stream1.stats.partLoosingTrades.toDouble == stream2.stats.partLoosingTrades.toDouble &&
-        stream1.stats.partProfitableTrades.toDouble == stream2.stats.partProfitableTrades.toDouble &&
+        stream1.stats.partWinningTrades.toDouble == stream2.stats.partWinningTrades.toDouble &&
         stream1.stats.profitFactor.toDouble == stream2.stats.profitFactor.toDouble &&
         stream1.stats.timeOfFirstSignal == stream2.stats.timeOfFirstSignal &&
         stream1.stats.timeOfLastSignal == stream2.stats.timeOfLastSignal &&

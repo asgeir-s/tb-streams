@@ -29,7 +29,7 @@ object TestData {
     accumulatedProfit = 1000.28376,
     accumulatedLoss = 700.01,
     averageTrade = 0.01,
-    partProfitableTrades = 0.70,
+    partWinningTrades = 0.70,
     partLoosingTrades = 0.20,
     profitFactor = 2.54,
     buyAndHoldChange = 0.30,
@@ -81,7 +81,7 @@ object TestData {
       accumulatedProfit = 1.5,
       accumulatedLoss = 0.5,
       averageTrade = 0.3333333333333333333333333333333333,
-      partProfitableTrades = 0.6666666666666666666666666666666667,
+      partWinningTrades = 0.6666666666666666666666666666666667,
       partLoosingTrades = 0.3333333333333333333333333333333333,
       profitFactor = 3,
       buyAndHoldChange = 8.75,
@@ -112,7 +112,7 @@ object TestData {
       accumulatedProfit = 1,
       accumulatedLoss = 0.5,
       averageTrade = 0.25,
-      partProfitableTrades = 0.5,
+      partWinningTrades = 0.5,
       partLoosingTrades = 0.5,
       profitFactor = 2,
       buyAndHoldChange = 5.5,
@@ -144,7 +144,7 @@ object TestData {
       accumulatedProfit = 1,
       accumulatedLoss = 0.5,
       averageTrade = 0.25,
-      partProfitableTrades = 0.5,
+      partWinningTrades = 0.5,
       partLoosingTrades = 0.5,
       profitFactor = 2,
       buyAndHoldChange = 3.5,
@@ -175,7 +175,7 @@ object TestData {
       accumulatedProfit = 1,
       accumulatedLoss = 0,
       averageTrade = 1,
-      partProfitableTrades = 1,
+      partWinningTrades = 1,
       partLoosingTrades = 0,
       profitFactor = 0,
       buyAndHoldChange = 2,
@@ -207,7 +207,7 @@ object TestData {
       accumulatedProfit = 1,
       accumulatedLoss = 0,
       averageTrade = 1,
-      partProfitableTrades = 1,
+      partWinningTrades = 1,
       partLoosingTrades = 0,
       profitFactor = 0,
       buyAndHoldChange = 1,
@@ -239,7 +239,7 @@ object TestData {
       accumulatedProfit = 0,
       accumulatedLoss = 0,
       averageTrade = 0,
-      partProfitableTrades = 0,
+      partWinningTrades = 0,
       partLoosingTrades = 0,
       profitFactor = 0,
       buyAndHoldChange = 0,
@@ -260,6 +260,202 @@ object TestData {
     ))
 
   val mathStream1 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 0, 0)
+
+
+
+
+  // fro actor test
+
+  val mathStream7actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 6,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*1,
+      numberOfSignals = 6,
+      numberOfClosedTrades = 3,
+      numberOfProfitableTrades = 2,
+      numberOfLoosingTrades = 1,
+      accumulatedProfit = 1.5,
+      accumulatedLoss = 0.5,
+      averageTrade = 0.3333333333333333333333333333333333,
+      partWinningTrades = 0.6666666666666666666666666666666667,
+      partLoosingTrades = 0.3333333333333333333333333333333333,
+      profitFactor = 3,
+      buyAndHoldChange = 8.75,
+      averageWinningTrade = 0.75,
+      averageLoosingTrade = 0.5,
+      averageMonthlyProfitIncl = 0.09625,
+      averageMonthlyProfitExcl = 0.1,
+      monthsOfTrading = 5,
+      maxDrawDown = 0.5,
+      firstPrice = 100,
+      allTimeValueExcl = 1.5,
+      allTimeValueIncl = 1.48125
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 2,
+      maxDDPrevMin = 1,
+      maxDDMax = 2
+    ))
+
+  val mathStream6actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 1, 5,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*2,
+      numberOfSignals = 5,
+      numberOfClosedTrades = 2,
+      numberOfProfitableTrades = 1,
+      numberOfLoosingTrades = 1,
+      accumulatedProfit = 1,
+      accumulatedLoss = 0.5,
+      averageTrade = 0.25,
+      partWinningTrades = 0.5,
+      partLoosingTrades = 0.5,
+      profitFactor = 2,
+      buyAndHoldChange = 5.5,
+      averageWinningTrade = 1,
+      averageLoosingTrade = 0.5,
+      averageMonthlyProfitIncl = -0.0025,
+      averageMonthlyProfitExcl = 0,
+      monthsOfTrading = 4,
+      maxDrawDown = 0.5,
+      firstPrice = 100,
+      allTimeValueExcl = 1,
+      allTimeValueIncl = 0.99
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 2,
+      maxDDPrevMin = 1,
+      maxDDMax = 2
+    ))
+
+
+  val mathStream5actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 4,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*3,
+      numberOfSignals = 4,
+      numberOfClosedTrades = 2,
+      numberOfProfitableTrades = 1,
+      numberOfLoosingTrades = 1,
+      accumulatedProfit = 1,
+      accumulatedLoss = 0.5,
+      averageTrade = 0.25,
+      partWinningTrades = 0.5,
+      partLoosingTrades = 0.5,
+      profitFactor = 2,
+      buyAndHoldChange = 3.5,
+      averageWinningTrade = 1,
+      averageLoosingTrade = 0.5,
+      averageMonthlyProfitIncl = -0.0025,
+      averageMonthlyProfitExcl = 0,
+      monthsOfTrading = 3,
+      maxDrawDown = 0.5,
+      firstPrice = 100,
+      allTimeValueExcl = 1,
+      allTimeValueIncl = 0.9925
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 2,
+      maxDDPrevMin = 1,
+      maxDDMax = 2
+    ))
+
+  val mathStream4actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", -1, 3,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*4,
+      numberOfSignals = 3,
+      numberOfClosedTrades = 1,
+      numberOfProfitableTrades = 1,
+      numberOfLoosingTrades = 0,
+      accumulatedProfit = 1,
+      accumulatedLoss = 0,
+      averageTrade = 1,
+      partWinningTrades = 1,
+      partLoosingTrades = 0,
+      profitFactor = 0,
+      buyAndHoldChange = 2,
+      averageWinningTrade = 1,
+      averageLoosingTrade = 0,
+      averageMonthlyProfitIncl = 0.49375,
+      averageMonthlyProfitExcl = 0.5,
+      monthsOfTrading = 2,
+      maxDrawDown = 0,
+      firstPrice = 100,
+      allTimeValueExcl = 2,
+      allTimeValueIncl = 1.9875
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 1,
+      maxDDPrevMin = 1,
+      maxDDMax = 2
+    ))
+
+
+  val mathStream3actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 2,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*5,
+      numberOfSignals = 2,
+      numberOfClosedTrades = 1,
+      numberOfProfitableTrades = 1,
+      numberOfLoosingTrades = 0,
+      accumulatedProfit = 1,
+      accumulatedLoss = 0,
+      averageTrade = 1,
+      partWinningTrades = 1,
+      partLoosingTrades = 0,
+      profitFactor = 0,
+      buyAndHoldChange = 1,
+      averageWinningTrade = 1,
+      averageLoosingTrade = 0,
+      averageMonthlyProfitIncl = 0.99,
+      averageMonthlyProfitExcl = 1,
+      monthsOfTrading = 1,
+      maxDrawDown = 0,
+      firstPrice = 100,
+      allTimeValueExcl = 2,
+      allTimeValueIncl = 1.99
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 1,
+      maxDDPrevMin = 1,
+      maxDDMax = 2
+    ))
+
+
+  val mathStream2actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 1, 1,
+    StreamStats(
+      timeOfFirstSignal = timestamp - monthMs*6,
+      timeOfLastSignal = timestamp - monthMs*6,
+      numberOfSignals = 1,
+      numberOfClosedTrades = 0,
+      numberOfProfitableTrades = 0,
+      numberOfLoosingTrades = 0,
+      accumulatedProfit = 0,
+      accumulatedLoss = 0,
+      averageTrade = 0,
+      partWinningTrades = 0,
+      partLoosingTrades = 0,
+      profitFactor = 0,
+      buyAndHoldChange = 0,
+      averageWinningTrade = 0,
+      averageLoosingTrade = 0,
+      averageMonthlyProfitIncl = 0,
+      averageMonthlyProfitExcl = 0,
+      monthsOfTrading = 0,
+      maxDrawDown = 0,
+      firstPrice = 100,
+      allTimeValueExcl = 1,
+      allTimeValueIncl = 0.9975
+    ),
+    ComputeComponents(
+      maxDDPrevMax = 1,
+      maxDDPrevMin = 1,
+      maxDDMax = 1
+    ))
+
+  val mathStream1actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 0)
 
 
   //Signal(id: Long, signal: Int, timestamp: Long, price: BigDecimal, change: BigDecimal, value: BigDecimal)

@@ -20,6 +20,7 @@ object DatabaseUtil {
       "apiKey" -> stream.apiKey,
       "status" -> stream.status,
       "idOfLastSignal" -> stream.idOfLastSignal,
+    
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
       "numberOfSignals" -> stream.stats.numberOfSignals,
@@ -29,7 +30,7 @@ object DatabaseUtil {
       "accumulatedProfit" -> stream.stats.accumulatedProfit,
       "accumulatedLoss" -> stream.stats.accumulatedLoss,
       "averageTrade" -> stream.stats.averageTrade,
-      "partWinningTrades" -> stream.stats.partProfitableTrades,
+      "partWinningTrades" -> stream.stats.partWinningTrades,
       "partLoosingTrades" -> stream.stats.partLoosingTrades,
       "profitFactor" -> stream.stats.profitFactor,
       "buyAndHoldChange" -> stream.stats.buyAndHoldChange,
@@ -39,6 +40,10 @@ object DatabaseUtil {
       "averageMonthlyProfitExcl" -> stream.stats.averageMonthlyProfitExcl,
       "monthsOfTrading" -> stream.stats.monthsOfTrading,
       "maxDrawDown" -> stream.stats.maxDrawDown,
+      "allTimeValueIncl" -> stream.stats.allTimeValueIncl,
+      "allTimeValueExcl" -> stream.stats.allTimeValueExcl,
+      "firstPrice" -> stream.stats.firstPrice,
+    
       "maxDDPrevMax" -> stream.computeComponents.maxDDPrevMax,
       "maxDDPrevMin" -> stream.computeComponents.maxDDPrevMin,
       "maxDDMax" -> stream.computeComponents.maxDDMax
@@ -86,7 +91,7 @@ object DatabaseUtil {
         accumulatedProfit = BigDecimal(attrMap("accumulatedProfit")),
         accumulatedLoss = BigDecimal(attrMap("accumulatedLoss")),
         averageTrade = BigDecimal(attrMap("averageTrade")),
-        partProfitableTrades = BigDecimal(attrMap("partWinningTrades")),
+        partWinningTrades = BigDecimal(attrMap("partWinningTrades")),
         partLoosingTrades = BigDecimal(attrMap("partLoosingTrades")),
         profitFactor = BigDecimal(attrMap("profitFactor")),
         buyAndHoldChange = BigDecimal(attrMap("buyAndHoldChange")),
@@ -95,7 +100,10 @@ object DatabaseUtil {
         averageMonthlyProfitIncl = BigDecimal(attrMap("averageMonthlyProfitIncl")),
         averageMonthlyProfitExcl = BigDecimal(attrMap("averageMonthlyProfitExcl")),
         monthsOfTrading = BigDecimal(attrMap("monthsOfTrading")),
-        maxDrawDown = BigDecimal(attrMap("maxDrawDown"))
+        maxDrawDown = BigDecimal(attrMap("maxDrawDown")),
+        allTimeValueIncl = BigDecimal(attrMap("allTimeValueIncl")),
+        allTimeValueExcl = BigDecimal(attrMap("allTimeValueExcl")),
+        firstPrice = BigDecimal(attrMap("firstPrice"))
       )
 
       val stream = SStream(

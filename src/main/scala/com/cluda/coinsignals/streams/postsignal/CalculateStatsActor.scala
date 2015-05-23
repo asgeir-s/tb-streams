@@ -3,7 +3,7 @@ package com.cluda.coinsignals.streams.postsignal
 import akka.actor.{PoisonPill, Actor, ActorLogging, Props}
 import awscala._
 import awscala.dynamodbv2.{DynamoDB, Table}
-import com.cluda.coinsignals.streams.model.Signal
+import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.protocoll.{DuplicateSignal, StreamDoesNotExistException}
 import com.cluda.coinsignals.streams.util.{StreamUtil, DatabaseUtil}
 
@@ -35,21 +35,22 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
         sender() ! StreamDoesNotExistException("could not find stream with id " + streamID + " in the streams-table")
         self ! PoisonPill
       }
+
       else {
-        val newStats = signals.map(signal => {
-          val gottenStream = stream.get
-          if(gottenStream.status == signal.signal) {
+        var sStream: SStream = DatabaseUtil.getStream(dynamoDB, streamsTable, streamID).get
+        signals.map(signal => {
+          if(sStream.status == signal.signal) {
             log.error("same as last signal. Signal id: " + signal.id)
             sender() ! DuplicateSignal("same as last signal")
+            self ! PoisonPill
           }
           else {
-            val stats = StreamUtil.updateStreamWitheNewSignal(stream.get, signal)
-            DatabaseUtil.putStream(dynamoDB, streamsTable, stats)
-            stats
+            sStream = StreamUtil.updateStreamWitheNewSignal(sStream, signal)
           }
         })
-        sender() ! newStats.head
-        log.info("stats updated to")
+        DatabaseUtil.putStream(dynamoDB, streamsTable, sStream)
+        sender() ! sStream
+        log.info("stream updated in database: " + sStream)
         self ! PoisonPill
       }
   }

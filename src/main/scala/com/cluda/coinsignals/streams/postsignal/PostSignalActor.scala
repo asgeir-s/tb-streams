@@ -17,7 +17,7 @@ class PostSignalActor(streamID: String, tableName: String) extends Actor with Ac
       respondTo ! HttpResponse(StatusCodes.Accepted, entity = stream.publicJson)
 
     case e: StreamDoesNotExistException =>
-      respondTo ! HttpResponse(StatusCodes.NoContent, entity = "")
+      respondTo ! HttpResponse(StatusCodes.NoContent)
 
     case e: DuplicateSignal =>
       respondTo ! HttpResponse(StatusCodes.Conflict)
