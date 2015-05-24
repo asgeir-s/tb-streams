@@ -1,6 +1,6 @@
 package com.cluda.coinsignals.streams
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
 import akka.stream.ActorFlowMaterializer
@@ -17,7 +17,7 @@ object Boot extends App with Service {
 
   override val config = ConfigFactory.load()
   override val logger = Logging(system, getClass)
-  override val timeout = Timeout(2 minutes)
+  override val timeout = Timeout(2.minutes)
 
   override val streamsTableName: String = config.getString("aws.dynamo.streamsTable")
 

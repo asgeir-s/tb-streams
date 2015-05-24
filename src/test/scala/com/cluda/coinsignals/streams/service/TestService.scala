@@ -17,8 +17,8 @@ trait TestService extends FlatSpec with Matchers with ScalatestRouteTest with Se
 
   override val logger = Logging(system, getClass)
 
-  override implicit val timeout: Timeout = Timeout(2 minutes)
+  override implicit val timeout: Timeout = Timeout(2.minutes)
 
-  implicit val routeTestTimeout = RouteTestTimeout(40 seconds)
+  implicit val routeTestTimeout = RouteTestTimeout(40.seconds)
 
 }

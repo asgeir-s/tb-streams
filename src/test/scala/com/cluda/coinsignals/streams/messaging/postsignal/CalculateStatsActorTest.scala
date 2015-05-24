@@ -4,11 +4,11 @@ import akka.testkit.{TestActorRef, TestProbe}
 import awscala._
 import awscala.dynamodbv2.DynamoDB
 import com.cluda.coinsignals.streams.messaging.MessagingTest
+import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.postsignal.CalculateStatsActor
-import com.cluda.coinsignals.streams.protocoll.NewStream
-import com.cluda.coinsignals.streams.util.{StreamUtil, DatabaseUtil}
+import com.cluda.coinsignals.streams.protocoll.{NewStream, UnexpectedSignalException}
+import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}
 import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
-import com.cluda.coinsignals.streams.model.SStream
 
 class CalculateStatsActorTest extends MessagingTest {
 
@@ -23,18 +23,16 @@ class CalculateStatsActorTest extends MessagingTest {
 
   "when it receives a signal it" should
     "calculate the 'Stream.Stats' and respond with the 'Stream'" in {
-    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName), "calculateStatsActor1")
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
     val asker = TestProbe()
     asker.send(actor, Seq(TestData.signalSeqMath(5)))
     val responds = asker.expectMsgType[SStream]
     assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream2actor))
-
   }
-
 
   "[math test] CalculateStatsActor" should
     "write correctly updated stats to the database and return the new 'SStream' for one new signal" in {
-    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName), "calculateStatsActor1")
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
     val asker = TestProbe()
 
     asker.send(actor, Seq(TestData.signalSeqMath(4)))
@@ -44,7 +42,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
   "[math test] CalculateStatsActor" should
     "write correctly updated stats to the database and return the new 'SStream' for multiple new signals" in {
-    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName), "calculateStatsActor1")
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
     val asker = TestProbe()
 
     asker.send(actor, Seq(TestData.signalSeqMath(3), TestData.signalSeqMath(2), TestData.signalSeqMath(1)))
@@ -54,7 +52,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
   "[math test] CalculateStatsActor" should
     "write correctly updated stats to the database and return the new 'SStream' for one new signal (2)" in {
-    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName), "calculateStatsActor1")
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
     val asker = TestProbe()
 
     asker.send(actor, Seq(TestData.signalSeqMath(0)))
@@ -62,26 +60,26 @@ class CalculateStatsActorTest extends MessagingTest {
     assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream7actor))
   }
 
+  "when it receive a signal that has a id smaller then the last processed signal it" should
+    "ignore the signal and send beack 'UnexpectedSignalException'" in {
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
+    val asker = TestProbe()
 
-    /*
-   val newSStream1 = StreamUtil.updateStreamWitheNewSignal(TestData.mathStream1, TestData.signalSeqMath(5))
-   assert(StreamUtil.checkRoundedEquality(newSStream1, TestData.mathStream2))
+    asker.send(actor, Seq(TestData.signalSeqMath(3)))
+    val responds = asker.expectMsgType[UnexpectedSignalException]
+    assert(responds.info.contains("already been processed"))
+  }
 
-   val newSStream2 = StreamUtil.updateStreamWitheNewSignal(newSStream1, TestData.signalSeqMath(4))
-   assert(StreamUtil.checkRoundedEquality(newSStream2, TestData.mathStream3))
+  "when it receive a signal that has a id lager then the next expected id (lastId + 1) it" should
+    "create a MissingSignalsActor and send the id of the last processed signal to it" in {
+    val actor = TestActorRef(CalculateStatsActor.props(testStreamName, testTableName))
+    val underlyingActor = actor.underlyingActor.asInstanceOf[CalculateStatsActor]
+    val asker = TestProbe()
 
-   val newSStream3 = StreamUtil.updateStreamWitheNewSignal(newSStream2, TestData.signalSeqMath(3))
-   assert(StreamUtil.checkRoundedEquality(newSStream3, TestData.mathStream4))
-
-   val newSStream4 = StreamUtil.updateStreamWitheNewSignal(newSStream3, TestData.signalSeqMath(2))
-   assert(StreamUtil.checkRoundedEquality(newSStream4, TestData.mathStream5))
-
-   val newSStream5 = StreamUtil.updateStreamWitheNewSignal(newSStream4, TestData.signalSeqMath(1))
-   assert(StreamUtil.checkRoundedEquality(newSStream5, TestData.mathStream6))
-
-   val newSStream6 = StreamUtil.updateStreamWitheNewSignal(newSStream5, TestData.signalSeqMath(0))
-   assert(StreamUtil.checkRoundedEquality(newSStream6, TestData.mathStream7))
-*/
+    assert(underlyingActor.context.children.isEmpty)
+    asker.send(actor, Seq(Signal(8, 1, TestData.timestamp + 10, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5))))
+    assert(underlyingActor.context.children.size == 1)
+  }
 
 
 }

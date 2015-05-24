@@ -2,8 +2,8 @@ package com.cluda.coinsignals.streams.unit
 
 import awscala._
 import awscala.dynamodbv2.DynamoDB
-import com.cluda.coinsignals.streams.{TestData, DatabaseTestUtil}
 import com.cluda.coinsignals.streams.util.DatabaseUtil
+import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
 
 class DatabaseUtilTest extends UnitTest {
 
@@ -16,7 +16,7 @@ class DatabaseUtilTest extends UnitTest {
     val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.adoptedStream)
     assert(idBack == TestData.adoptedStream.id)
     val streamBack = DatabaseUtil.getStream(dynamoDB, testDatabase, idBack)
-    assert(streamBack isDefined)
+    assert(streamBack.isDefined)
     assert(streamBack.get == TestData.adoptedStream)
   }
 
@@ -25,7 +25,7 @@ class DatabaseUtilTest extends UnitTest {
     val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.freshStream)
     assert(idBack == TestData.freshStream.id)
     val streamBack = DatabaseUtil.getStream(dynamoDB, testDatabase, idBack)
-    assert(streamBack isDefined)
+    assert(streamBack.isDefined)
     assert(streamBack.get == TestData.freshStream)
   }
 

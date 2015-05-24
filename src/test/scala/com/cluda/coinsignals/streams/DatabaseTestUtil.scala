@@ -2,16 +2,11 @@ package com.cluda.coinsignals.streams
 
 import awscala.dynamodbv2.{AttributeType, DynamoDB, Table}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
-import com.cluda.coinsignals.streams.model.SStream
-import com.cluda.coinsignals.streams.protocoll.NewStream
 
-/**
- * Created by sogasg on 21/05/15.
- */
 object DatabaseTestUtil {
 
   def createStreamsTable(implicit dynamoDB: DynamoDB, tableName: String): Table = {
-    if (dynamoDB.table(tableName) isEmpty) {
+    if (dynamoDB.table(tableName).isEmpty) {
       createAndWaitForTable(dynamoDB, tableName)
     }
     else {
@@ -32,11 +27,11 @@ object DatabaseTestUtil {
       Thread.sleep(1000 * 10)
       print(".")
       val request = new DescribeTableRequest().withTableName(tableName)
-      val table = dynamoDB.describeTable(request).getTable()
+      val table = dynamoDB.describeTable(request).getTable
       if (table == null) {}
       else {
-        val tableStatus = table.getTableStatus()
-        if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
+        val tableStatus = table.getTableStatus
+        if (tableStatus.equals(TableStatus.ACTIVE.toString)) {
           tableReady = true
         }
       }
