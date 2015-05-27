@@ -1,6 +1,27 @@
 # Streams Microservice
 Microservice used in the coinsignals project.
 
+## Interface
+	POST: /streams 	
+	{	"id": "btcaddress",
+    	"exchange": "bitstamp",
+    	"currencyPair": "btcUSD",
+    	"apiKey": "secretkeyOrWhat" 
+    }
+    
+    POST: /streams/'streamID'/signals 
+    {
+    	"timestamp": 1432122282747,
+    	"price": 200.453,
+    	"change": 0,
+    	"id": 1,
+    	"value": 100,
+    	"signal": 1
+    }
+    
+    GET:  /streams/'streamID'
+   	
+
 ## OSX Set Up
 ##### Docker
 Local if when runing docker: localhost
