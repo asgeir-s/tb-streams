@@ -71,7 +71,7 @@ object DatabaseUtil {
   def getStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Option[SStream] = {
 
     val streamFromDb = table.getItem(streamID)
-    if (streamFromDb isDefined) {
+    if (streamFromDb.isDefined) {
       val streamGotten = streamFromDb.get
       val attrMap = streamGotten.attributes.map(x => (x.name, x.value.s.getOrElse(x.value.n.getOrElse("")))).toMap
 

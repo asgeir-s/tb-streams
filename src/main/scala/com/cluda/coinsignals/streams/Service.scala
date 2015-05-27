@@ -8,6 +8,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.stream.FlowMaterializer
 import akka.util.Timeout
+import com.cluda.coinsignals.streams.getstream.GetStreamActor
 import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.poststream.PostStreamActor
@@ -52,7 +53,7 @@ trait Service {
           get {
             logRequestResult("GET streams/" + streamID)
             complete {
-              "GET stream: " + streamID
+              perRequestActor[String](GetStreamActor.props(streamsTableName), streamID)
             }
 
           } ~

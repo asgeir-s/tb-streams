@@ -102,7 +102,7 @@ object StreamUtil {
     val absMaxDrawDown = cComponents.maxDDPrevMax - cComponents.maxDDPrevMin
 
     val maxDrawDown: BigDecimal =
-      if (cComponents.maxDDPrevMax == 0) {
+      if (cComponents.maxDDPrevMax == BigDecimal(0)) {
         BigDecimal(0)
       } else {
         (BigDecimal(1) / cComponents.maxDDPrevMax) * absMaxDrawDown
@@ -131,7 +131,7 @@ object StreamUtil {
         BigDecimal(0)
       }
       else {
-        (accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) - accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)) / BigDecimal((numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long]))
+        (accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) - accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)) / BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
       }
 
     val averageWinningTrade: BigDecimal =

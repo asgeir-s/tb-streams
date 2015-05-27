@@ -1,17 +1,17 @@
 package com.cluda.coinsignals.streams.postsignal
 
-import akka.actor.{PoisonPill, Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import awscala._
 import awscala.dynamodbv2.{DynamoDB, Table}
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
-import com.cluda.coinsignals.streams.protocoll.{DuplicateSignal, StreamDoesNotExistException}
-import com.cluda.coinsignals.streams.util.{StreamUtil, DatabaseUtil}
+import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, StreamDoesNotExistException, UnexpectedSignalException}
+import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}
 
 class CalculateStatsActor(streamID: String, tableName: String) extends Actor with ActorLogging {
 
   implicit val dynamoDB = DynamoDB.at(Region.US_WEST_2)
 
-  if (dynamoDB.table(tableName) isEmpty) {
+  if (dynamoDB.table(tableName).isEmpty) {
     log.error("could not find streams-table (" + tableName + ")")
     context.parent ! StreamDoesNotExistException("could not find streams-table (" + tableName + ")")
   }
@@ -19,17 +19,17 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
 
   val stream = DatabaseUtil.getStream(dynamoDB, streamsTable, streamID)
 
-  if (stream isEmpty) {
+  if (stream.isEmpty) {
     log.error("could not find stream with id " + streamID + " in the streams-table")
     context.parent ! StreamDoesNotExistException("could not find stream with id " + streamID + " in the streams-table")
     self ! PoisonPill
   }
 
   override def receive: Receive = {
-    case signals: Seq[Signal]  =>
+    case signals: Seq[Signal] =>
 
       //for safety
-      if (stream isEmpty) {
+      if (stream.isEmpty) {
         log.error("could not find stream with id " + streamID + " in the streams-table")
         context.parent ! StreamDoesNotExistException("could not find stream with id " + streamID + " in the streams-table")
         sender() ! StreamDoesNotExistException("could not find stream with id " + streamID + " in the streams-table")
@@ -38,20 +38,39 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
 
       else {
         var sStream: SStream = DatabaseUtil.getStream(dynamoDB, streamsTable, streamID).get
-        signals.map(signal => {
-          if(sStream.status == signal.signal) {
-            log.error("same as last signal. Signal id: " + signal.id)
-            sender() ! DuplicateSignal("same as last signal")
-            self ! PoisonPill
-          }
-          else {
-            sStream = StreamUtil.updateStreamWitheNewSignal(sStream, signal)
-          }
-        })
-        DatabaseUtil.putStream(dynamoDB, streamsTable, sStream)
-        sender() ! sStream
-        log.info("stream updated in database: " + sStream)
-        self ! PoisonPill
+        val newSignals = signals.filter(_.id > sStream.idOfLastSignal)
+        if (newSignals.isEmpty) {
+          log.warning("CalculateStatsActor: only received signal(s) with ID(s) that has already been processed. Returns 'UnexpectedSignalException'.")
+          sender() ! UnexpectedSignalException("only received signal(s) with ID(s) that has already been processed.")
+          self ! PoisonPill
+        }
+        else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1)) {
+          log.warning("CalculateStatsActor: received signal(s) with ID(s) that does not include the expected next ID. The ID(s) are (all) higher then the next expected next signal's id. Starts MissingSignalsActor to retrieve the missing signals.")
+          context.actorOf(MissingSignalsActor.props(streamID)) ! sStream.idOfLastSignal
+        }
+        else {
+          newSignals.sortBy(_.id).foreach(signal => {
+            if(signal.id != sStream.idOfLastSignal +1) {
+              //ignore
+            }
+            else if (sStream.status == signal.signal) {
+              log.error("CalculateStatsActor: [FatalStreamCorruptedException] This signal has the same (position-)signal as the last signal. Signal id: " + signal.id)
+              sender() ! FatalStreamCorruptedException(streamID, "this signal has the same (position-)signal as the last signal")
+            }
+            else if (sStream.status == 1 && signal.signal == -1 || sStream.status == -1 && signal.signal == 1) {
+              log.error("CalculateStatsActor: [FatalStreamCorruptedException] invalid sequence of signals (going from LONG to SHORT or SHORT to LONG without closing first).")
+              sender() ! FatalStreamCorruptedException(streamID, "invalid sequence of signals (going from LONG to SHORT or SHORT to LONG without closing first).")
+              self ! PoisonPill
+            }
+            else {
+              sStream = StreamUtil.updateStreamWitheNewSignal(sStream, signal)
+            }
+          })
+          DatabaseUtil.putStream(dynamoDB, streamsTable, sStream)
+          sender() ! sStream
+          log.info("CalculateStatsActor: stream updated in database. New stream object: " + sStream)
+          self ! PoisonPill
+        }
       }
   }
 }
