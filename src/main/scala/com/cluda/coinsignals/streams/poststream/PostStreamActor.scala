@@ -1,9 +1,9 @@
 package com.cluda.coinsignals.streams.poststream
 
-import akka.actor.{PoisonPill, Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import awscala.dynamodbv2._
-import com.amazonaws.auth.{BasicAWSCredentials, ClasspathPropertiesFileCredentialsProvider}
+import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
 import com.amazonaws.services.sns.AmazonSNSClient
@@ -15,26 +15,38 @@ import scala.concurrent.ExecutionContext
 
 class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
-  implicit val dynamoDB = DynamoDB.at(awscala.Region.US_WEST_2)
-  implicit val ec:ExecutionContext = context.system.dispatcher
   val config = ConfigFactory.load()
+  implicit val region: Region = awscala.Region.US_WEST_2
+  val awscalaCredentials = awscala.BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
+  val awsJavaCredentials = new BasicAWSCredentials(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
 
-  val credentials = new BasicAWSCredentials(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
+
+  implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+
+  implicit val ec: ExecutionContext = context.system.dispatcher
+
+  println(config.getString("aws.accessKeyId") + " - " + config.getString("aws.secretAccessKey"))
+
 
   import collection.JavaConversions._
-
   val topicSubscribers: List[String] = config.getStringList("awsTopicSubscribers").toList
 
-  private val streamsTable: Table = {
+  println("start finding streamsTable")
+
+  private val streamsTable: awscala.dynamodbv2.Table = {
     if (dynamoDB.table(tableName).isEmpty) {
+      println("dynamoDB.table(tableName).isEmpty")
       createAndWaitForTable(tableName)
     }
     else {
+      println("found table")
       dynamoDB.table(tableName).get
     }
   }
+  println("Finished finding streamsTable")
 
-  def createAndWaitForTable(tableName: String): Table = {
+
+  def createAndWaitForTable(tableName: String): awscala.dynamodbv2.Table = {
     log.info("PostStreamActor: creating streamsTable with name " + tableName + " and witing for it to become ACTIVE")
     dynamoDB.createTable(
       name = tableName,
@@ -67,7 +79,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       val s = sender()
       log.info("PostStreamActor: got new stream: " + newStream)
       //Crete AWS SNS Topic
-      val snsClient: AmazonSNSClient = new AmazonSNSClient(credentials)
+      val snsClient: AmazonSNSClient = new AmazonSNSClient(awsJavaCredentials)
       snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
