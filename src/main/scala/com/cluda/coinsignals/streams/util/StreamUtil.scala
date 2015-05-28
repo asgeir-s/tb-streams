@@ -1,6 +1,6 @@
 package com.cluda.coinsignals.streams.util
 
-import com.cluda.coinsignals.streams.model.{ComputeComponents, SStream, Signal, StreamStats}
+import com.cluda.coinsignals.streams.model._
 
 object StreamUtil {
 
@@ -203,7 +203,7 @@ object StreamUtil {
       allTimeValueIncl = allTimeValueIncl
     )
 
-    SStream(stream.id, stream.exchange, stream.currencyPair, stream.apiKey, signal.signal, signal.id, adoptedStreamStats, cComponents)
+    SStream(stream.id, stream.exchange, stream.currencyPair, signal.signal, signal.id, StreamPrivate(stream.streamPrivate.apiKey, stream.streamPrivate.topicArn), adoptedStreamStats, cComponents)
   }
 
   def checkRoundedEquality(stream1: SStream, stream2: SStream): Boolean = {
@@ -211,7 +211,8 @@ object StreamUtil {
       true
     }
     else {
-      stream1.apiKey == stream2.apiKey &&
+      stream1.streamPrivate.apiKey == stream2.streamPrivate.apiKey &&
+        stream1.streamPrivate.topicArn == stream2.streamPrivate.topicArn &&
         stream1.computeComponents == stream2.computeComponents &&
         stream1.currencyPair == stream2.currencyPair &&
         stream1.exchange == stream2.exchange &&

@@ -18,7 +18,7 @@ class CalculateStatsActorTest extends MessagingTest {
   override def beforeAll(): Unit = {
     val database = DynamoDB.at(Region.US_WEST_2)
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
-    DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "secret"))
+    DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "apiKey"), "topicARN")
   }
 
   "when it receives a signal it" should
@@ -27,6 +27,8 @@ class CalculateStatsActorTest extends MessagingTest {
     val asker = TestProbe()
     asker.send(actor, Seq(TestData.signalSeqMath(5)))
     val responds = asker.expectMsgType[SStream]
+    println(responds)
+    println(TestData.mathStream2actor)
     assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream2actor))
   }
 

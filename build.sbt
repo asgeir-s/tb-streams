@@ -30,7 +30,8 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %%    "akka-http-spray-json-experimental"       %     akkaStreamV,
     "com.typesafe.akka"     %%    "akka-http-testkit-scala-experimental"    %     akkaStreamV,
     "org.scalatest"         %%    "scalatest"                               %     scalaTestV      %     "test",
-    "com.github.seratch"    %%    "awscala"                                 %     "0.5.+"
+    "com.github.seratch"    %%    "awscala"                                 %     "0.5.+",
+    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.9.36"
 
   )
 }

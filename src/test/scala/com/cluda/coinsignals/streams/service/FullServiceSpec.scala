@@ -3,6 +3,7 @@ package com.cluda.coinsignals.streams.service
 import akka.http.scaladsl.model.StatusCodes._
 import awscala._
 import awscala.dynamodbv2.DynamoDB
+import com.amazonaws.services.sns.model.DeleteTopicRequest
 
 class FullServiceSpec extends TestService {
 
@@ -19,6 +20,7 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
+      println(respons)
       assert(respons.contains("btcaddress"))
 
     }
@@ -214,14 +216,26 @@ class FullServiceSpec extends TestService {
   }
 
 
-  it should "be possible to get the stream info as json" in {
+  it should "be possible to get the stream info as json with no secrets" in {
     Get("/streams/btcaddress") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("btcaddress"))
-      println("THE respons: " + respons)
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("apiKey"))
     }
   }
+
+  it should "be possible to get the stream info as json with apiKey and topicArn" in {
+    Get("/streams/btcaddress?private=true") ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(respons.contains("btcaddress"))
+      assert(respons.contains("topicArn"))
+      assert(respons.contains("apiKey"))
+    }
+  }
+
 
   override def afterAll(): Unit = {
     implicit val dynamoDB = DynamoDB.at(Region.US_WEST_2)

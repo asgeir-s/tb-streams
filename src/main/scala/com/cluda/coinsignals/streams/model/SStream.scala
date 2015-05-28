@@ -4,15 +4,16 @@ import spray.json.DefaultJsonProtocol
 
 object StreamStatsProtocol extends DefaultJsonProtocol {
   implicit val streamStatsFormat = jsonFormat22(StreamStats)
+  implicit val streamPrivateFormat = jsonFormat2(StreamPrivate)
 }
 
 case class SStream(
   id: String,
   exchange: String,
   currencyPair: String,
-  apiKey: String,
   status: Int,
   idOfLastSignal: Long,
+  streamPrivate: StreamPrivate,
   stats: StreamStats = StreamStats(),
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
@@ -27,7 +28,25 @@ case class SStream(
     println(json)
     json
   }
+
+  def privateJson: String = {
+    import StreamStatsProtocol._
+    import spray.json._
+    val json = """{ "id": """" + id + """",""" +
+      """ "exchange": """" + exchange + """",""" +
+      """ "currencyPair": """" + currencyPair + """",""" +
+      """ "status": """" + status + """",""" +
+      """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
+      """ "stats": """ + stats.toJson.prettyPrint + """}"""
+    println(json)
+    json
+  }
 }
+
+case class StreamPrivate(
+  apiKey: String,
+  topicArn: String
+  )
 
 case class StreamStats(
   timeOfFirstSignal: Long = 0,

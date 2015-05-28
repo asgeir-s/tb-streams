@@ -52,10 +52,11 @@ trait Service {
         pathPrefix(Segment) { streamID =>
           get {
             logRequestResult("GET streams/" + streamID)
-            complete {
-              perRequestActor[String](GetStreamActor.props(streamsTableName), streamID)
+            parameters('private.as[Boolean].?) { privateInfo =>
+              complete {
+                perRequestActor[(String, Boolean)](GetStreamActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
+              }
             }
-
           } ~
             pathPrefix("signals") {
               post {
@@ -71,17 +72,17 @@ trait Service {
               }
             }
         } ~
-        post {
-          logRequestResult("POST streams")
-          import NewStreamJsonProtocol._
-          import spray.json._
-          entity(as[String]) { streamString =>
-            val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
-            complete {
-              perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
+          post {
+            logRequestResult("POST streams")
+            import NewStreamJsonProtocol._
+            import spray.json._
+            entity(as[String]) { streamString =>
+              val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
+              complete {
+                perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
+              }
             }
           }
-        }
       }
 
     }

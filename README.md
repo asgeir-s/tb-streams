@@ -2,15 +2,14 @@
 Microservice used in the coinsignals project.
 
 ## Interface
-	POST: /streams 	
-	{	"id": "btcaddress",
+	POST: /streams {	
+		"id": "btcaddress",
     	"exchange": "bitstamp",
     	"currencyPair": "btcUSD",
     	"apiKey": "secretkeyOrWhat" 
     }
     
-    POST: /streams/'streamID'/signals 
-    {
+    POST: /streams/'streamID'/signals {
     	"timestamp": 1432122282747,
     	"price": 200.453,
     	"change": 0,
@@ -19,7 +18,7 @@ Microservice used in the coinsignals project.
     	"signal": 1
     }
     
-    GET:  /streams/'streamID'
+    GET:  /streams/'streamID' returns Stream info and stats
    	
 
 ## OSX Set Up

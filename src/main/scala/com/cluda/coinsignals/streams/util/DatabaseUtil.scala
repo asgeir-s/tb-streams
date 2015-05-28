@@ -1,7 +1,7 @@
 package com.cluda.coinsignals.streams.util
 
 import awscala.dynamodbv2._
-import com.cluda.coinsignals.streams.model.{ComputeComponents, SStream, StreamStats}
+import com.cluda.coinsignals.streams.model.{StreamPrivate, ComputeComponents, SStream, StreamStats}
 import com.cluda.coinsignals.streams.protocoll.NewStream
 
 object DatabaseUtil {
@@ -17,10 +17,11 @@ object DatabaseUtil {
       stream.id,
       "exchange" -> stream.exchange,
       "currencyPair" -> stream.currencyPair,
-      "apiKey" -> stream.apiKey,
+      "apiKey" -> stream.streamPrivate.apiKey,
+      "topicArn" -> stream.streamPrivate.topicArn,
       "status" -> stream.status,
       "idOfLastSignal" -> stream.idOfLastSignal,
-    
+
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
       "numberOfSignals" -> stream.stats.numberOfSignals,
@@ -57,8 +58,8 @@ object DatabaseUtil {
    * @param newStream id of the stream
    * @return
    */
-  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream): String = {
-    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, newStream.apiKey, 0, 0))
+  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String): String = {
+    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, 0, 0, StreamPrivate(newStream.apiKey, topicArn)))
   }
 
 
@@ -106,15 +107,20 @@ object DatabaseUtil {
         firstPrice = BigDecimal(attrMap("firstPrice"))
       )
 
+      val sPrivate = StreamPrivate(
+        apiKey = attrMap("apiKey"),
+        topicArn = attrMap("topicArn")
+      )
+
       val stream = SStream(
         id = attrMap("id"),
         exchange = attrMap("exchange"),
         currencyPair = attrMap("currencyPair"),
-        apiKey = attrMap("apiKey"),
         status = attrMap("status").toInt,
         idOfLastSignal = attrMap("idOfLastSignal").toLong,
         stats = stats,
-        computeComponents = cComponents
+        computeComponents = cComponents,
+        streamPrivate = sPrivate
       )
 
       Some(stream)

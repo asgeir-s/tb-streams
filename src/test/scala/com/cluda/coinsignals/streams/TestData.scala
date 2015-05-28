@@ -11,7 +11,7 @@ object TestData {
   val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1))
   val signalminus1 = Signal(3, -1, timestamp, BigDecimal(200), BigDecimal(-0.5), BigDecimal(0))
 
-  val freshStream = SStream("someid1", "bitstamp", "btcUSD", "secretkey", 0, 0)
+  val freshStream = SStream("someid1", "bitstamp", "btcUSD", 0, 0, StreamPrivate("apiKey","topicARN"))
 
   val adoptedCC = ComputeComponents(
     maxDDPrevMax = 0.23,
@@ -41,7 +41,7 @@ object TestData {
     maxDrawDown = 0.20
   )
 
-  val adoptedStream = SStream("someid2", "bitstamp", "btcUSD", "secretkey", 0, 3, adoptedStreamStats, adoptedCC)
+  val adoptedStream = SStream("someid2", "bitstamp", "btcUSD", 0, 3,  StreamPrivate("apiKey","topicARN"), adoptedStreamStats, adoptedCC)
 
 
   val signalSeq = Seq(
@@ -70,7 +70,7 @@ object TestData {
     Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0), BigDecimal(1))
   )
 
-  val mathStream7 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 0, 6,
+  val mathStream7 = SStream("math-test", "bitstamp", "btcUSD", 0, 6, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*1,
@@ -101,7 +101,7 @@ object TestData {
       maxDDMax = 2
     ))
 
-  val mathStream6 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 1, 5,
+  val mathStream6 = SStream("math-test", "bitstamp", "btcUSD", 1, 5, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*2,
@@ -133,7 +133,7 @@ object TestData {
     ))
 
 
-  val mathStream5 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 0, 4,
+  val mathStream5 = SStream("math-test", "bitstamp", "btcUSD", 0, 4, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*3,
@@ -164,7 +164,7 @@ object TestData {
       maxDDMax = 2
     ))
 
-  val mathStream4 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", -1, 3,
+  val mathStream4 = SStream("math-test", "bitstamp", "btcUSD", -1, 3, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*4,
@@ -196,7 +196,7 @@ object TestData {
     ))
 
 
-  val mathStream3 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 0, 2,
+  val mathStream3 = SStream("math-test", "bitstamp", "btcUSD", 0, 2, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*5,
@@ -228,7 +228,7 @@ object TestData {
     ))
 
 
-  val mathStream2 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 1, 1,
+  val mathStream2 = SStream("math-test", "bitstamp", "btcUSD", 1, 1, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*6,
@@ -259,14 +259,14 @@ object TestData {
       maxDDMax = 1
     ))
 
-  val mathStream1 = SStream("math-test", "bitstamp", "btcUSD", "secretkey", 0, 0)
+  val mathStream1 = SStream("math-test", "bitstamp", "btcUSD", 0, 0, StreamPrivate("apiKey","topicARN"))
 
 
 
 
   // fro actor test
 
-  val mathStream7actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 6,
+  val mathStream7actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 0, 6, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*1,
@@ -297,7 +297,7 @@ object TestData {
       maxDDMax = 2
     ))
 
-  val mathStream6actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 1, 5,
+  val mathStream6actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 1, 5, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*2,
@@ -329,7 +329,7 @@ object TestData {
     ))
 
 
-  val mathStream5actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 4,
+  val mathStream5actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 0, 4, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*3,
@@ -360,7 +360,7 @@ object TestData {
       maxDDMax = 2
     ))
 
-  val mathStream4actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", -1, 3,
+  val mathStream4actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", -1, 3, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*4,
@@ -392,7 +392,7 @@ object TestData {
     ))
 
 
-  val mathStream3actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 2,
+  val mathStream3actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 0, 2, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*5,
@@ -424,7 +424,7 @@ object TestData {
     ))
 
 
-  val mathStream2actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 1, 1,
+  val mathStream2actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 1, 1, StreamPrivate("apiKey","topicARN"),
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*6,
@@ -455,7 +455,7 @@ object TestData {
       maxDDMax = 1
     ))
 
-  val mathStream1actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", "secret", 0, 0)
+  val mathStream1actor = SStream("calculateStatsActorTestStream", "bitstamp", "btcUSD", 0, 0, StreamPrivate("apiKey","topicARN"))
 
 
   //Signal(id: Long, signal: Int, timestamp: Long, price: BigDecimal, change: BigDecimal, value: BigDecimal)

@@ -11,7 +11,7 @@ class GetStreamActor(tableName: String) extends Actor with ActorLogging {
   implicit val dynamoDB = DynamoDB.at(Region.US_WEST_2)
 
   override def receive: Receive = {
-    case streamId: String =>
+    case (streamId: String, privateInfo: Boolean) =>
 
       if (dynamoDB.table(tableName).isEmpty) {
         sender() ! HttpResponse(StatusCodes.NotFound)
@@ -20,7 +20,12 @@ class GetStreamActor(tableName: String) extends Actor with ActorLogging {
         val table = dynamoDB.table(tableName).get
         val stream = DatabaseUtil.getStream(dynamoDB, table, streamId)
         if(stream.isDefined) {
-          sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.publicJsonWithStatus)
+          if (privateInfo) {
+            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.privateJson)
+          }
+          else {
+            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.publicJsonWithStatus)
+          }
         }
         else {
           sender() ! HttpResponse(StatusCodes.NotFound)
