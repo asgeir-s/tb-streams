@@ -3,12 +3,16 @@ package com.cluda.coinsignals.streams.getstream
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import awscala._
-import awscala.dynamodbv2.DynamoDB
 import com.cluda.coinsignals.streams.util.DatabaseUtil
+import com.typesafe.config.ConfigFactory
 
 class GetStreamActor(tableName: String) extends Actor with ActorLogging {
+  val config = ConfigFactory.load()
+  implicit val region: Region = awscala.Region.US_WEST_2
+  val awscalaCredentials = BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
 
-  implicit val dynamoDB = DynamoDB.at(Region.US_WEST_2)
+
+  implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
 
   override def receive: Receive = {
     case (streamId: String, privateInfo: Boolean) =>
