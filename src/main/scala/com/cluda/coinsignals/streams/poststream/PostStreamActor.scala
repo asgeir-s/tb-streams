@@ -2,7 +2,7 @@ package com.cluda.coinsignals.streams.poststream
 
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-//import awscala.dynamodbv2._
+import awscala.dynamodbv2._
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
@@ -17,35 +17,25 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
   implicit val region: Region = awscala.Region.US_WEST_2
-  //val awscalaCredentials = awscala.BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
+  val awscalaCredentials = awscala.BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
   val awsJavaCredentials = new BasicAWSCredentials(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
 
 
-  //implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
-
+  implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
   implicit val ec: ExecutionContext = context.system.dispatcher
-
-  println(config.getString("aws.accessKeyId") + " - " + config.getString("aws.secretAccessKey"))
-
 
   import collection.JavaConversions._
 
   val topicSubscribers: List[String] = config.getStringList("awsTopicSubscribers").toList
 
-  println("start finding streamsTable")
-
-  /*
   private val streamsTable: awscala.dynamodbv2.Table = {
     if (dynamoDB.table(tableName).isEmpty) {
-      println("dynamoDB.table(tableName).isEmpty")
       createAndWaitForTable(tableName)
     }
     else {
-      println("found table")
       dynamoDB.table(tableName).get
     }
   }
-  println("Finished finding streamsTable")
 
 
   def createAndWaitForTable(tableName: String): awscala.dynamodbv2.Table = {
@@ -75,7 +65,6 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
     log.info("PostStreamActor: streamsTable with name " + tableName + " is ready.")
     dynamoDB.table(tableName).get
   }
-  */
 
   override def receive: Receive = {
     case newStream: NewStream =>
@@ -87,14 +76,12 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
         topicSubscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
-        /*
+
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn)
         s ! HttpResponse(StatusCodes.Accepted, entity = """{"id":""" + newStream.id + "}")
         self ! PoisonPill
       }
-      */
-        s ! HttpResponse(StatusCodes.Accepted, entity = """{"id":""" + newStream.id + "}")
-      }
+
   }
 }
 
