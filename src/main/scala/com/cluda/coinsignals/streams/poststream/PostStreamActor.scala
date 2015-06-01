@@ -26,7 +26,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   import collection.JavaConversions._
 
-  val topicSubscribers: List[String] = config.getStringList("awsTopicSubscribers").toList
+  val topicSubscribersRaw: List[String] = config.getStringList("awsTopicSubscribers").toList
 
   private val streamsTable: awscala.dynamodbv2.Table = {
     if (dynamoDB.table(tableName).isEmpty) {
@@ -69,13 +69,14 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
   override def receive: Receive = {
     case newStream: NewStream =>
       val s = sender()
+      val subscribers = topicSubscribersRaw.map(_.replace("'streamID'", newStream.id))
       log.info("PostStreamActor: got new stream: " + newStream)
       //Crete AWS SNS Topic
       val snsClient: AmazonSNSClient = new AmazonSNSClient(awsJavaCredentials)
       snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
-        topicSubscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
+        subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
 
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn)
         s ! HttpResponse(StatusCodes.Accepted, entity = """{"id":""" + newStream.id + "}")
