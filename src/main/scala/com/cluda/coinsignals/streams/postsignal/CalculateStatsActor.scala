@@ -50,8 +50,8 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
         }
         else {
           newSignals.sortBy(_.id).foreach(signal => {
-            if(signal.id != sStream.idOfLastSignal +1) {
-              //ignore
+            if(signal.id != sStream.idOfLastSignal +1 && sStream.stats.numberOfSignals > 0) {
+              log.error("CalculateStatsActor: tryed to add a signal that did no have the last id!! THIS SHOULD NOT BE POSSIBLE AND WILL CORRUPT THE STREAM!!!")
             }
             else if (sStream.status == signal.signal) {
               log.error("CalculateStatsActor: [FatalStreamCorruptedException] This signal has the same (position-)signal as the last signal. Signal id: " + signal.id)
