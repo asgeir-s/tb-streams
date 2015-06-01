@@ -17,7 +17,7 @@ abstract class MessagingTest extends TestKit(ActorSystem("test", ConfigFactory.p
                                                                                              """))) with FlatSpecLike with ImplicitSender with Matchers with
 OptionValues with Inside with Inspectors with BeforeAndAfterAll {
 
-  implicit val timeout = Timeout(10 second)
+  implicit val timeout = Timeout(10.second)
   implicit val context = system.dispatcher
   
   def afterTest(): Unit ={}

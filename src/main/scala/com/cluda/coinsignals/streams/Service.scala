@@ -80,21 +80,36 @@ trait Service {
                     // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
                     if (awsMessageType.isDefined && awsMessageType.get == "SubscriptionConfirmation") {
                       val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
-                        .replaceAll(""""""", "")
+                        .replaceAll( """"""", "")
                         .replace("https://", "")
                         .replace("http://", "")
-                      complete (
+                      complete(
                         confirmAwsSnsSubscription(confirmUrl)
                       )
                     }
                     else {
-                      // check integrity and visit the 'SubscribeURL'
                       import SignalJsonProtocol._
-                      val signals = bodyString.parseJson.convertTo[Seq[Signal]]
+                      val signals =
+                        if (awsMessageType.isDefined && awsMessageType.get == "Notification") {
+                          val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
+                          println(message)
+                          val decoded = message.replace( """\n""", " ").replace( """\""", "")
+                          println(decoded)
+                          val removeFirstAndLAst = decoded.substring(1, decoded.length-1)
+                          println("removeFirstAndLAst: " + removeFirstAndLAst)
+
+                          val json = removeFirstAndLAst.parseJson
+
+                          json.convertTo[Seq[Signal]]
+                        }
+                        else {
+                          bodyString.parseJson.convertTo[Seq[Signal]]
+                        }
                       complete {
                         perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), signals)
                       }
                     }
+
                   }
                 }
               }
