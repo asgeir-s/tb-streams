@@ -2,11 +2,14 @@ package com.cluda.coinsignals.streams
 
 import akka.actor.{ActorSystem, Props}
 import akka.event.LoggingAdapter
-import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.stream.FlowMaterializer
+import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
 import com.cluda.coinsignals.streams.getstream.GetStreamActor
 import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
@@ -46,6 +49,16 @@ trait Service {
       .asInstanceOf[Future[HttpResponse]]
   }
 
+  def confirmAwsSnsSubscription(subscribeURL: String): Future[HttpResponse] = {
+    val splitPoint = subscribeURL.indexOf(".com") + 4
+    val host = subscribeURL.substring(0, splitPoint)
+    val path = subscribeURL.substring(splitPoint, subscribeURL.length)
+
+    val conn = Http().outgoingConnection(host)
+    val request = HttpRequest(GET, uri = path)
+    Source.single(request).via(conn).runWith(Sink.head[HttpResponse])
+  }
+
   val routes = {
     logRequestResult("signals") {
       pathPrefix("streams") {
@@ -61,12 +74,27 @@ trait Service {
             pathPrefix("signals") {
               post {
                 logRequestResult("POST streams/" + streamID + "/signals")
-                entity(as[String]) { signalString =>
-                  import SignalJsonProtocol._
-                  import spray.json._
-                  val signals = signalString.parseJson.convertTo[Seq[Signal]]
-                  complete {
-                    perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), signals)
+                entity(as[String]) { bodyString =>
+                  optionalHeaderValueByName("x-amz-sns-message-type") { awsMessageType =>
+                    import spray.json._
+                    // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
+                    if (awsMessageType.isDefined && awsMessageType.get == "SubscriptionConfirmation") {
+                      val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
+                        .replaceAll(""""""", "")
+                        .replace("https://", "")
+                        .replace("http://", "")
+                      complete (
+                        confirmAwsSnsSubscription(confirmUrl)
+                      )
+                    }
+                    else {
+                      // check integrity and visit the 'SubscribeURL'
+                      import SignalJsonProtocol._
+                      val signals = bodyString.parseJson.convertTo[Seq[Signal]]
+                      complete {
+                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), signals)
+                      }
+                    }
                   }
                 }
               }
