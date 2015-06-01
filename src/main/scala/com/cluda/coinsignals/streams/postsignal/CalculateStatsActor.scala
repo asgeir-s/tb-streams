@@ -44,7 +44,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
           sender() ! UnexpectedSignalException("only received signal(s) with ID(s) that has already been processed.")
           self ! PoisonPill
         }
-        else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1)) {
+        else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1) && sStream.stats.numberOfSignals > 0) {
           log.warning("CalculateStatsActor: received signal(s) with ID(s) that does not include the expected next ID. The ID(s) are (all) higher then the next expected next signal's id. Starts MissingSignalsActor to retrieve the missing signals.")
           context.actorOf(MissingSignalsActor.props(streamID)) ! sStream.idOfLastSignal
         }
