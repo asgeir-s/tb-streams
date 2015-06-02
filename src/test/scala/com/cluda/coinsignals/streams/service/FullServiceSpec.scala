@@ -238,6 +238,17 @@ class FullServiceSpec extends TestService {
     }
   }
 
+  it should "respondse with NoCOntent when trying to retreive a stream that does not exist" in {
+    Get("/streams/fackestream?private=true") ~> routes ~> check {
+      status shouldBe NotFound
+    }
+
+    Get("/streams/fackestream") ~> routes ~> check {
+      status shouldBe NotFound
+    }
+
+  }
+
   it should "handle AWS SNS subscription messages" in {
     // putted in a lot of crap in the body to se it finds the correct key value pare the interacting value is 'SubscribeURL'
     Post("/streams/btcaddress/signals",

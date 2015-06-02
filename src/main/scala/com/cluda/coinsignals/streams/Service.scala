@@ -60,11 +60,9 @@ trait Service {
   }
 
   val routes = {
-    logRequestResult("signals") {
       pathPrefix("streams") {
         pathPrefix(Segment) { streamID =>
           get {
-            logRequestResult("GET streams/" + streamID)
             parameters('private.as[Boolean].?) { privateInfo =>
               complete {
                 perRequestActor[(String, Boolean)](GetStreamActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
@@ -73,7 +71,6 @@ trait Service {
           } ~
             pathPrefix("signals") {
               post {
-                logRequestResult("POST streams/" + streamID + "/signals")
                 entity(as[String]) { bodyString =>
                   optionalHeaderValueByName("x-amz-sns-message-type") { awsMessageType =>
                     import spray.json._
@@ -111,7 +108,6 @@ trait Service {
             }
         } ~
           post {
-            logRequestResult("POST streams")
             import NewStreamJsonProtocol._
             import spray.json._
             entity(as[String]) { streamString =>
@@ -123,6 +119,6 @@ trait Service {
           }
       }
 
-    }
+
   }
 }
