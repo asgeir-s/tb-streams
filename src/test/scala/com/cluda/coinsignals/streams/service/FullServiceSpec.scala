@@ -1,6 +1,8 @@
 package com.cluda.coinsignals.streams.service
 
+import akka.http.impl.util.JavaMapping.HttpHeader
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.headers.RawHeader
 import awscala._
 import awscala.dynamodbv2.DynamoDB
 import com.amazonaws.services.sns.model.DeleteTopicRequest
@@ -234,6 +236,45 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("topicArn"))
       assert(respons.contains("apiKey"))
     }
+  }
+
+  it should "handle AWS SNS subscription messages" in {
+    // putted in a lot of crap in the body to se it finds the correct key value pare the interacting value is 'SubscribeURL'
+    Post("/streams/btcaddress/signals",
+      """{
+      "Type" : "Notification",
+      "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+      "TopicArn" : "arn:aws:sns:us-west-2:123456789012:MyTopic",
+      "SubscribeURL": "https://www.msn.com/nb-no/underholdning/nyheter/her-f%C3%A5r-enrique-iglesias-kuttet-fingrene-p%C3%A5-scenen/ar-BBktl44",
+      "Subject" : "My First Message",
+      "Message" : "[{\n  \"timestamp\": 1433169808000,\n  \"price\": 227.5100,\n  \"change\": 0E-10,\n  \"id\": 3,\n  \"value\": 1.0000000000,\n  \"signal\": 0\n}]",
+      "Timestamp" : "2012-05-02T00:54:06.655Z",
+      "SignatureVersion" : "1",
+      "Signature" : "EXAMPLEw6JRNwm1LFQL4ICB0bnXrdB8ClRMTQFGBqwLpGbM78tJ4etTwC5zU7O3tS6tGpey3ejedNdOJ+1fkIp9F2/LmNVKb5aFlYq+9rk9ZiPph5YlLmWsDcyC5T+Sy9/umic5S0UQc2PEtgdpVBahwNOdMW4JPwk0kAJJztnc=",
+      "SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-f3ecfb7224c7233fe7bb5f59f96de52f.pem",
+      "UnsubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:123456789012:MyTopic:c9135db0-26c4-47ec-8998-413945fb5a96"
+    }""").addHeader(RawHeader("x-amz-sns-message-type","SubscriptionConfirmation")) ~> routes ~> check {
+      status shouldBe OK
+    }
+  }
+
+  it should "handle new signals incoming as AWS SNS messages" in {
+    Post("/streams/btcaddress/signals",
+    """{
+      "Type" : "Notification",
+      "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
+      "TopicArn" : "arn:aws:sns:us-west-2:123456789012:MyTopic",
+      "Subject" : "My First Message",
+      "Message" : "[{\n  \"timestamp\": 1433169808000,\n  \"price\": 227.5100,\n  \"change\": 0E-10,\n  \"id\": 10,\n  \"value\": 1.0000000000,\n  \"signal\": 0\n}]",
+      "Timestamp" : "2012-05-02T00:54:06.655Z",
+      "SignatureVersion" : "1",
+      "Signature" : "EXAMPLEw6JRNwm1LFQL4ICB0bnXrdB8ClRMTQFGBqwLpGbM78tJ4etTwC5zU7O3tS6tGpey3ejedNdOJ+1fkIp9F2/LmNVKb5aFlYq+9rk9ZiPph5YlLmWsDcyC5T+Sy9/umic5S0UQc2PEtgdpVBahwNOdMW4JPwk0kAJJztnc=",
+      "SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-f3ecfb7224c7233fe7bb5f59f96de52f.pem",
+      "UnsubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:123456789012:MyTopic:c9135db0-26c4-47ec-8998-413945fb5a96"
+    }""").addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
+      status shouldBe Accepted
+    }
+
   }
 
 

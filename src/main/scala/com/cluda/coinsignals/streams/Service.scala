@@ -92,14 +92,9 @@ trait Service {
                       val signals =
                         if (awsMessageType.isDefined && awsMessageType.get == "Notification") {
                           val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
-                          println(message)
                           val decoded = message.replace( """\n""", " ").replace( """\""", "")
-                          println(decoded)
                           val removeFirstAndLAst = decoded.substring(1, decoded.length-1)
-                          println("removeFirstAndLAst: " + removeFirstAndLAst)
-
                           val json = removeFirstAndLAst.parseJson
-
                           json.convertTo[Seq[Signal]]
                         }
                         else {
