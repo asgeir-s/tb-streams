@@ -17,8 +17,13 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
   implicit val region: Region = awscala.Region.US_WEST_2
-  val awscalaCredentials = awscala.BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
-  val awsJavaCredentials = new BasicAWSCredentials(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
+  val awscalaCredentials = awscala.BasicCredentialsProvider(
+    config.getString("aws.accessKeyId"),
+    config.getString("aws.secretAccessKey"))
+
+  val awsJavaCredentials = new BasicAWSCredentials(
+    config.getString("aws.accessKeyId"),
+    config.getString("aws.secretAccessKey"))
 
 
   implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
@@ -39,7 +44,9 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
 
   def createAndWaitForTable(tableName: String): awscala.dynamodbv2.Table = {
-    log.info("PostStreamActor: creating streamsTable with name " + tableName + " and witing for it to become ACTIVE")
+    log.info("PostStreamActor: creating streamsTable with name " + tableName +
+      " and witing for it to become ACTIVE")
+
     dynamoDB.createTable(
       name = tableName,
       hashPK = "id" -> AttributeType.String

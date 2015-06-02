@@ -23,7 +23,8 @@ object StreamUtil {
         None
       }
 
-    val allTimeValueIncl: BigDecimal = (stream.stats.allTimeValueIncl - BigDecimal(0.0025)) * (BigDecimal(1) + signal.change)
+    val allTimeValueIncl: BigDecimal =
+      (stream.stats.allTimeValueIncl - BigDecimal(0.0025)) * (BigDecimal(1) + signal.change)
 
     val allTimeValueExcl = signal.value
 
@@ -90,13 +91,16 @@ object StreamUtil {
       else if (signal.value > stream.computeComponents.maxDDMax) {
         val maxDDMax = signal.value
         ComputeComponents(stream.computeComponents.maxDDPrevMax, stream.computeComponents.maxDDPrevMin, maxDDMax)
-      } else if ((stream.computeComponents.maxDDMax - signal.value) > (stream.computeComponents.maxDDPrevMax - stream.computeComponents.maxDDPrevMin)) {
+      } else if ((stream.computeComponents.maxDDMax - signal.value) >
+        (stream.computeComponents.maxDDPrevMax - stream.computeComponents.maxDDPrevMin)) {
+
         val maxDDPrevMax = stream.computeComponents.maxDDMax
         val maxDDPrevMin = signal.value
         ComputeComponents(maxDDPrevMax, maxDDPrevMin, stream.computeComponents.maxDDMax)
       }
       else {
-        ComputeComponents(stream.computeComponents.maxDDPrevMax, stream.computeComponents.maxDDPrevMin, stream.computeComponents.maxDDMax)
+        ComputeComponents(stream.computeComponents.maxDDPrevMax,
+          stream.computeComponents.maxDDPrevMin, stream.computeComponents.maxDDMax)
       }
 
     val absMaxDrawDown = cComponents.maxDDPrevMax - cComponents.maxDDPrevMin
@@ -131,21 +135,25 @@ object StreamUtil {
         BigDecimal(0)
       }
       else {
-        (accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) - accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)) / BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
+        (accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) -
+          accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)) /
+          BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
       }
 
     val averageWinningTrade: BigDecimal =
       if (numberOfProfitableTrades.getOrElse(stream.stats.numberOfProfitableTrades).asInstanceOf[Long] == 0) {
         BigDecimal(0)
       } else {
-        accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) / BigDecimal(numberOfProfitableTrades.getOrElse(stream.stats.numberOfProfitableTrades).asInstanceOf[Long])
+        accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) /
+          BigDecimal(numberOfProfitableTrades.getOrElse(stream.stats.numberOfProfitableTrades).asInstanceOf[Long])
       }
 
     val averageLoosingTrade: BigDecimal =
       if (numberOfLoosingTrades.getOrElse(stream.stats.numberOfLoosingTrades).asInstanceOf[Long] == 0) {
         BigDecimal(0)
       } else {
-        accumulatedLoss.getOrElse(stream.stats.accumulatedLoss) / BigDecimal(numberOfLoosingTrades.getOrElse(stream.stats.numberOfLoosingTrades).asInstanceOf[Long])
+        accumulatedLoss.getOrElse(stream.stats.accumulatedLoss) /
+          BigDecimal(numberOfLoosingTrades.getOrElse(stream.stats.numberOfLoosingTrades).asInstanceOf[Long])
       }
 
 
@@ -153,29 +161,34 @@ object StreamUtil {
       if (numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long] == 0) {
         BigDecimal(0)
       } else {
-        BigDecimal(numberOfProfitableTrades.getOrElse(stream.stats.numberOfProfitableTrades)) / BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
+        BigDecimal(numberOfProfitableTrades.getOrElse(stream.stats.numberOfProfitableTrades)) /
+          BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
       }
 
     val partLoosingTrades: BigDecimal =
       if (numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long] == 0) {
         BigDecimal(0)
       } else {
-        BigDecimal(numberOfLoosingTrades.getOrElse(stream.stats.numberOfLoosingTrades)) / BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
+        BigDecimal(numberOfLoosingTrades.getOrElse(stream.stats.numberOfLoosingTrades)) /
+          BigDecimal(numberOfClosedTrades.getOrElse(stream.stats.numberOfClosedTrades).asInstanceOf[Long])
       }
 
     val profitFactor: BigDecimal =
       if (accumulatedLoss.getOrElse(stream.stats.accumulatedLoss) == BigDecimal(0)) {
         BigDecimal(0)
       } else {
-        accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) / accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)
+        accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) /
+          accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)
 
       }
 
     val buyAndHoldChange: BigDecimal =
-      if (firstPrice.getOrElse(stream.stats.firstPrice) * (signal.price - firstPrice.getOrElse(stream.stats.firstPrice)) == BigDecimal(0)) {
+      if (firstPrice.getOrElse(stream.stats.firstPrice) *
+        (signal.price - firstPrice.getOrElse(stream.stats.firstPrice)) == BigDecimal(0)) {
         BigDecimal(0)
       } else {
-        1 / firstPrice.getOrElse(stream.stats.firstPrice) * (signal.price - firstPrice.getOrElse(stream.stats.firstPrice))
+        1 / firstPrice.getOrElse(stream.stats.firstPrice) *
+          (signal.price - firstPrice.getOrElse(stream.stats.firstPrice))
       }
 
     val adoptedStreamStats = StreamStats(
@@ -203,7 +216,17 @@ object StreamUtil {
       allTimeValueIncl = allTimeValueIncl
     )
 
-    SStream(stream.id, stream.exchange, stream.currencyPair, signal.signal, signal.id, StreamPrivate(stream.streamPrivate.apiKey, stream.streamPrivate.topicArn), adoptedStreamStats, cComponents)
+    SStream(
+      stream.id,
+      stream.exchange,
+      stream.currencyPair, 
+      signal.signal,
+      signal.id,
+      StreamPrivate(
+        stream.streamPrivate.apiKey,
+        stream.streamPrivate.topicArn),
+      adoptedStreamStats,
+      cComponents)
   }
 
   def checkRoundedEquality(stream1: SStream, stream2: SStream): Boolean = {

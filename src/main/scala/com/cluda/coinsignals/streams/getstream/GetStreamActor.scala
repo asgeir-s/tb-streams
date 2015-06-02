@@ -9,7 +9,9 @@ import com.typesafe.config.ConfigFactory
 class GetStreamActor(tableName: String) extends Actor with ActorLogging {
   val config = ConfigFactory.load()
   implicit val region: Region = awscala.Region.US_WEST_2
-  val awscalaCredentials = BasicCredentialsProvider(config.getString("aws.accessKeyId"), config.getString("aws.secretAccessKey"))
+  val awscalaCredentials = BasicCredentialsProvider(
+    config.getString("aws.accessKeyId"),
+    config.getString("aws.secretAccessKey"))
 
 
   implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)

@@ -20,7 +20,8 @@ class PostSignalActor(streamID: String, tableName: String) extends Actor with Ac
       respondTo ! HttpResponse(StatusCodes.NoContent)
 
     case e: FatalStreamCorruptedException =>
-      respondTo ! HttpResponse(StatusCodes.NotAcceptable, entity = """{ "error": """" + e.info  + """", "streamId": """" + e.streamId + """" }""")
+      respondTo ! HttpResponse(StatusCodes.NotAcceptable,
+        entity = """{ "error": """" + e.info  + """", "streamId": """" + e.streamId + """" }""")
 
     case e: UnexpectedSignalException =>
       respondTo ! HttpResponse(StatusCodes.Conflict, entity = """{ "error": """" + e.info + """ }""")
