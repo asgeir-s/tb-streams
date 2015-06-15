@@ -5,10 +5,13 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.testkit.{TestActorRef, TestProbe}
 import awscala._
 import awscala.dynamodbv2.DynamoDB
+import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.messaging.MessagingTest
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.protocoll.StreamDoesNotExistException
+import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
+import com.typesafe.config.ConfigFactory
 
 
 class PostSignalActorTest extends MessagingTest {
@@ -16,7 +19,7 @@ class PostSignalActorTest extends MessagingTest {
   val testTableName = "postSignalActorTest"
 
   override def beforeAll(): Unit = {
-    DatabaseTestUtil.createStreamsTable(DynamoDB.at(Region.US_WEST_2), testTableName)
+    DatabaseTestUtil.createStreamsTable(DatabaseUtil.awscalaDB(ConfigFactory.load()), testTableName)
   }
 
   "when receiving a 'Signals' it" should

@@ -1,10 +1,21 @@
 package com.cluda.coinsignals.streams.util
 
 import awscala.dynamodbv2._
+import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.model.{StreamPrivate, ComputeComponents, SStream, StreamStats}
 import com.cluda.coinsignals.streams.protocoll.NewStream
+import com.typesafe.config.Config
 
 object DatabaseUtil {
+
+  def awscalaDB(config: Config):  DynamoDB = {
+    implicit val region: Region = awscala.Region(config.getString("aws.dynamo.region"))
+    val awscalaCredentials = awscala.BasicCredentialsProvider(
+      config.getString("aws.accessKeyId"),
+      config.getString("aws.secretAccessKey"))
+
+    awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+  }
 
   /**
    *

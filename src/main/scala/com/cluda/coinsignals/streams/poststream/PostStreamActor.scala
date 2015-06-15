@@ -16,17 +16,8 @@ import scala.concurrent.ExecutionContext
 class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
-  implicit val region: Region = awscala.Region.US_WEST_2
-  val awscalaCredentials = awscala.BasicCredentialsProvider(
-    config.getString("aws.accessKeyId"),
-    config.getString("aws.secretAccessKey"))
 
-  val awsJavaCredentials = new BasicAWSCredentials(
-    config.getString("aws.accessKeyId"),
-    config.getString("aws.secretAccessKey"))
-
-
-  implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+  implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
   implicit val ec: ExecutionContext = context.system.dispatcher
 
   import collection.JavaConversions._
@@ -79,7 +70,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       val subscribers = topicSubscribersRaw.map(_.replace("'streamID'", newStream.id))
       log.info("PostStreamActor: got new stream: " + newStream)
       //Crete AWS SNS Topic
-      val snsClient: AmazonSNSClient = new AmazonSNSClient(awsJavaCredentials)
+      val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
       snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)

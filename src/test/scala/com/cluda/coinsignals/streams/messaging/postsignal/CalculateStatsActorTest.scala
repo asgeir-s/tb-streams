@@ -3,20 +3,28 @@ package com.cluda.coinsignals.streams.messaging.postsignal
 import akka.testkit.{TestActorRef, TestProbe}
 import awscala._
 import awscala.dynamodbv2.DynamoDB
+import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.messaging.MessagingTest
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.postsignal.CalculateStatsActor
 import com.cluda.coinsignals.streams.protocoll.{NewStream, UnexpectedSignalException}
 import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}
 import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
+import com.typesafe.config.ConfigFactory
 
 class CalculateStatsActorTest extends MessagingTest {
 
   val testTableName = "calculateStatsActorTest"
   val testStreamName = "calculateStatsActorTestStream"
 
+  val config = ConfigFactory.load()
+  implicit val region: Region = awscala.Region.US_WEST_2
+  val awscalaCredentials = awscala.BasicCredentialsProvider(
+    config.getString("aws.accessKeyId"),
+    config.getString("aws.secretAccessKey"))
+
   override def beforeAll(): Unit = {
-    val database = DynamoDB.at(Region.US_WEST_2)
+    val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
     DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "apiKey"), "topicARN")
   }

@@ -2,13 +2,16 @@ package com.cluda.coinsignals.streams.unit
 
 import awscala._
 import awscala.dynamodbv2.DynamoDB
+import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
+import com.typesafe.config.ConfigFactory
 
 class DatabaseUtilTest extends UnitTest {
 
   val tableName = "databaseUtilTest"
-  val dynamoDB = DynamoDB.at(Region.US_WEST_2)
+  val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
   val testDatabase = DatabaseTestUtil.createStreamsTable(dynamoDB, tableName)
 
   "when putting a stream and getting it abck from the database the stream" should

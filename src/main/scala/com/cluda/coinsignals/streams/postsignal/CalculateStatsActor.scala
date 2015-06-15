@@ -3,13 +3,16 @@ package com.cluda.coinsignals.streams.postsignal
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import awscala._
 import awscala.dynamodbv2.{DynamoDB, Table}
+import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, StreamDoesNotExistException, UnexpectedSignalException}
 import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}
+import com.typesafe.config.ConfigFactory
 
 class CalculateStatsActor(streamID: String, tableName: String) extends Actor with ActorLogging {
 
-  implicit val dynamoDB = DynamoDB.at(Region.US_WEST_2)
+  implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
+
 
   if (dynamoDB.table(tableName).isEmpty) {
     log.error("could not find streams-table (" + tableName + ")")
