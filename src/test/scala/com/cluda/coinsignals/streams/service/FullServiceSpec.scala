@@ -290,6 +290,14 @@ class FullServiceSpec extends TestService {
 
   }
 
+  it should "be possible to get all streams" in {
+    Get("/streams") ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      respons.contains("btcaddress")
+    }
+  }
+
 
   override def afterAll(): Unit = {
     val config = ConfigFactory.load()

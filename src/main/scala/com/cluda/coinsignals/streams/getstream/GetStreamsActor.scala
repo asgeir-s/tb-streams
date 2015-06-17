@@ -6,20 +6,21 @@ import awscala._
 import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.typesafe.config.ConfigFactory
 
-class GetStreamActor(tableName: String) extends Actor with ActorLogging {
+class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
 
   implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
 
+  val tableIsEmpty = dynamoDB.table(tableName).isEmpty
+
   override def receive: Receive = {
     case (streamId: String, privateInfo: Boolean) =>
-
-      if (dynamoDB.table(tableName).isEmpty) {
+      if (tableIsEmpty) {
         sender() ! HttpResponse(StatusCodes.NotFound)
       }
       else {
         val table = dynamoDB.table(tableName).get
         val stream = DatabaseUtil.getStream(dynamoDB, table, streamId)
-        if(stream.isDefined) {
+        if (stream.isDefined) {
           if (privateInfo) {
             sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.privateJson)
           }
@@ -32,10 +33,21 @@ class GetStreamActor(tableName: String) extends Actor with ActorLogging {
         }
         self ! PoisonPill
       }
+
+    case "all" =>
+      if (tableIsEmpty) {
+        sender() ! HttpResponse(StatusCodes.OK, entity = "[]")
+      }
+      else {
+        val table = dynamoDB.table(tableName).get
+        sender() ! HttpResponse(StatusCodes.OK, entity =
+          "[" + DatabaseUtil.getAllStreams(dynamoDB, table).map(_.publicJsonWithStatus).mkString(",") + "]")
+      }
+
   }
 
 }
 
-object GetStreamActor {
-  def props(tableName: String): Props = Props(new GetStreamActor(tableName))
+object GetStreamsActor {
+  def props(tableName: String): Props = Props(new GetStreamsActor(tableName))
 }

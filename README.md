@@ -19,6 +19,8 @@ Microservice used in the coinsignals project.
     }
     
     GET:  /streams/'streamID' returns Stream info and stats
+    
+    GET: /streams returns stream info for all streams
    	
 
 ## OSX Set Up

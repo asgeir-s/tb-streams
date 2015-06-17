@@ -74,6 +74,59 @@ object DatabaseUtil {
   }
 
 
+  def itemToStream(streamItem: Item): SStream = {
+    val attrMap = streamItem.attributes.map(x => (x.name, x.value.s.getOrElse(x.value.n.getOrElse("")))).toMap
+
+    val cComponents = ComputeComponents(
+      maxDDPrevMax = BigDecimal(attrMap("maxDDPrevMax")),
+      maxDDPrevMin = BigDecimal(attrMap("maxDDPrevMin")),
+      maxDDMax = BigDecimal(attrMap("maxDDMax"))
+    )
+
+    val stats = StreamStats(
+      timeOfFirstSignal = attrMap("timeOfFirstSignal").toLong,
+      timeOfLastSignal = attrMap("timeOfLastSignal").toLong,
+      numberOfSignals = attrMap("numberOfSignals").toLong,
+      numberOfClosedTrades = attrMap("numberOfClosedTrades").toLong,
+      numberOfProfitableTrades = attrMap("numberOfProfitableTrades").toLong,
+      numberOfLoosingTrades = attrMap("numberOfLoosingTrades").toLong,
+      accumulatedProfit = BigDecimal(attrMap("accumulatedProfit")),
+      accumulatedLoss = BigDecimal(attrMap("accumulatedLoss")),
+      averageTrade = BigDecimal(attrMap("averageTrade")),
+      partWinningTrades = BigDecimal(attrMap("partWinningTrades")),
+      partLoosingTrades = BigDecimal(attrMap("partLoosingTrades")),
+      profitFactor = BigDecimal(attrMap("profitFactor")),
+      buyAndHoldChange = BigDecimal(attrMap("buyAndHoldChange")),
+      averageWinningTrade = BigDecimal(attrMap("averageWinningTrade")),
+      averageLoosingTrade = BigDecimal(attrMap("averageLoosingTrade")),
+      averageMonthlyProfitIncl = BigDecimal(attrMap("averageMonthlyProfitIncl")),
+      averageMonthlyProfitExcl = BigDecimal(attrMap("averageMonthlyProfitExcl")),
+      monthsOfTrading = BigDecimal(attrMap("monthsOfTrading")),
+      maxDrawDown = BigDecimal(attrMap("maxDrawDown")),
+      allTimeValueIncl = BigDecimal(attrMap("allTimeValueIncl")),
+      allTimeValueExcl = BigDecimal(attrMap("allTimeValueExcl")),
+      firstPrice = BigDecimal(attrMap("firstPrice"))
+    )
+
+    val sPrivate = StreamPrivate(
+      apiKey = attrMap("apiKey"),
+      topicArn = attrMap("topicArn")
+    )
+
+    val stream = SStream(
+      id = attrMap("id"),
+      exchange = attrMap("exchange"),
+      currencyPair = attrMap("currencyPair"),
+      status = attrMap("status").toInt,
+      idOfLastSignal = attrMap("idOfLastSignal").toLong,
+      stats = stats,
+      computeComponents = cComponents,
+      streamPrivate = sPrivate
+    )
+
+    stream
+  }
+
   /**
    *
    * @param table streamsTable
@@ -81,64 +134,16 @@ object DatabaseUtil {
    * @return
    */
   def getStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Option[SStream] = {
-
     val streamFromDb = table.getItem(streamID)
     if (streamFromDb.isDefined) {
-      val streamGotten = streamFromDb.get
-      val attrMap = streamGotten.attributes.map(x => (x.name, x.value.s.getOrElse(x.value.n.getOrElse("")))).toMap
-
-      val cComponents = ComputeComponents(
-        maxDDPrevMax = BigDecimal(attrMap("maxDDPrevMax")),
-        maxDDPrevMin = BigDecimal(attrMap("maxDDPrevMin")),
-        maxDDMax = BigDecimal(attrMap("maxDDMax"))
-      )
-
-      val stats = StreamStats(
-        timeOfFirstSignal = attrMap("timeOfFirstSignal").toLong,
-        timeOfLastSignal = attrMap("timeOfLastSignal").toLong,
-        numberOfSignals = attrMap("numberOfSignals").toLong,
-        numberOfClosedTrades = attrMap("numberOfClosedTrades").toLong,
-        numberOfProfitableTrades = attrMap("numberOfProfitableTrades").toLong,
-        numberOfLoosingTrades = attrMap("numberOfLoosingTrades").toLong,
-        accumulatedProfit = BigDecimal(attrMap("accumulatedProfit")),
-        accumulatedLoss = BigDecimal(attrMap("accumulatedLoss")),
-        averageTrade = BigDecimal(attrMap("averageTrade")),
-        partWinningTrades = BigDecimal(attrMap("partWinningTrades")),
-        partLoosingTrades = BigDecimal(attrMap("partLoosingTrades")),
-        profitFactor = BigDecimal(attrMap("profitFactor")),
-        buyAndHoldChange = BigDecimal(attrMap("buyAndHoldChange")),
-        averageWinningTrade = BigDecimal(attrMap("averageWinningTrade")),
-        averageLoosingTrade = BigDecimal(attrMap("averageLoosingTrade")),
-        averageMonthlyProfitIncl = BigDecimal(attrMap("averageMonthlyProfitIncl")),
-        averageMonthlyProfitExcl = BigDecimal(attrMap("averageMonthlyProfitExcl")),
-        monthsOfTrading = BigDecimal(attrMap("monthsOfTrading")),
-        maxDrawDown = BigDecimal(attrMap("maxDrawDown")),
-        allTimeValueIncl = BigDecimal(attrMap("allTimeValueIncl")),
-        allTimeValueExcl = BigDecimal(attrMap("allTimeValueExcl")),
-        firstPrice = BigDecimal(attrMap("firstPrice"))
-      )
-
-      val sPrivate = StreamPrivate(
-        apiKey = attrMap("apiKey"),
-        topicArn = attrMap("topicArn")
-      )
-
-      val stream = SStream(
-        id = attrMap("id"),
-        exchange = attrMap("exchange"),
-        currencyPair = attrMap("currencyPair"),
-        status = attrMap("status").toInt,
-        idOfLastSignal = attrMap("idOfLastSignal").toLong,
-        stats = stats,
-        computeComponents = cComponents,
-        streamPrivate = sPrivate
-      )
-
-      Some(stream)
+      Some(itemToStream(streamFromDb.get))
     }
     else {
       None
     }
+  }
 
+  def getAllStreams(implicit dynamoDB: DynamoDB, table: Table): Seq[SStream] = {
+    table.scan(filter = Seq()).map(itemToStream(_))
   }
 }

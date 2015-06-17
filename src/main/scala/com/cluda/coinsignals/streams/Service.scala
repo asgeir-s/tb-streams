@@ -11,7 +11,7 @@ import akka.pattern.ask
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
-import com.cluda.coinsignals.streams.getstream.GetStreamActor
+import com.cluda.coinsignals.streams.getstream.GetStreamsActor
 import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.poststream.PostStreamActor
@@ -65,7 +65,7 @@ trait Service {
           get {
             parameters('private.as[Boolean].?) { privateInfo =>
               complete {
-                perRequestActor[(String, Boolean)](GetStreamActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
+                perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
               }
             }
           } ~
@@ -116,7 +116,12 @@ trait Service {
                 perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
               }
             }
+          } ~
+        get {
+          complete {
+            perRequestActor[String](GetStreamsActor.props(streamsTableName), "all")
           }
+        }
       }
 
 
