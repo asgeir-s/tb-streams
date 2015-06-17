@@ -17,13 +17,12 @@ case class SStream(
   stats: StreamStats = StreamStats(),
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
-  def publicJsonWithStatus: String = {
+  def publicJson: String = {
     import StreamStatsProtocol._
     import spray.json._
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
-      """ "status": """" + status + """",""" +
       """ "stats": """ + stats.toJson.compactPrint + """}"""
     println(json)
     json

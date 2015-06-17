@@ -25,7 +25,7 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
             sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.privateJson)
           }
           else {
-            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.publicJsonWithStatus)
+            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.publicJson)
           }
         }
         else {
@@ -41,7 +41,7 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
       else {
         val table = dynamoDB.table(tableName).get
         sender() ! HttpResponse(StatusCodes.OK, entity =
-          "[" + DatabaseUtil.getAllStreams(dynamoDB, table).map(_.publicJsonWithStatus).mkString(",") + "]")
+          "[" + DatabaseUtil.getAllStreams(dynamoDB, table).map(_.publicJson).mkString(",") + "]")
       }
 
   }
