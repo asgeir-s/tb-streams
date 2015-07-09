@@ -16,6 +16,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
   val testTableName = "calculateStatsActorTest"
   val testStreamName = "calculateStatsActorTestStream"
+  val testStreamApiKey = "key"
 
   val config = ConfigFactory.load()
   implicit val region: Region = awscala.Region.US_WEST_2
@@ -26,7 +27,7 @@ class CalculateStatsActorTest extends MessagingTest {
   override def beforeAll(): Unit = {
     val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
-    DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "apiKey"), "topicARN")
+    DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "btcAddress", 10), "topicARN", testStreamApiKey)
   }
 
   "when it receives a signal it" should
@@ -37,7 +38,7 @@ class CalculateStatsActorTest extends MessagingTest {
     val responds = asker.expectMsgType[SStream]
     println(responds)
     println(TestData.mathStream2actor)
-    assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream2actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream2actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -47,7 +48,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(4)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream3actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream3actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -57,7 +58,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(3), TestData.signalSeqMath(2), TestData.signalSeqMath(1)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream6actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream6actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -67,7 +68,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(0)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEquality(responds, TestData.mathStream7actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream7actor))
   }
 
   "when it receive a signal that has a id smaller then the last processed signal it" should

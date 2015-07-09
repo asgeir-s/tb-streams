@@ -16,22 +16,23 @@ class FullServiceSpec extends TestService {
   it should "responds accept the new stream and return the id" in {
     Post("/streams",
       """{
-        |"id": "btcaddress",
+        |"id": "coinbase-account-id",
         |"exchange": "bitstamp",
         |"currencyPair": "btcUSD",
-        |"apiKey": "secretkeyOrWhat"
+        |"payoutAddress": "publishers-bitcoin-address",
+        |"subscriptionPriceUSD": 5
         |}""".stripMargin
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       println(respons)
-      assert(respons.contains("btcaddress"))
-
+      assert(respons.contains("id"))
+      assert(respons.contains("apiKey"))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when a new signal is posted for an existing stream" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 200.453,
@@ -43,13 +44,13 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("btcaddress"))
+      assert(respons.contains("coinbase-account-id"))
 
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when two new signals is posted for an existing stream" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 254.453,
@@ -69,12 +70,12 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("btcaddress"))
+      assert(respons.contains("coinbase-account-id"))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when three signals is posted ina out of order sequence" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 264.453,
@@ -102,7 +103,7 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("btcaddress"))
+      assert(respons.contains("coinbase-account-id"))
     }
   }
 
@@ -110,7 +111,7 @@ class FullServiceSpec extends TestService {
     "signals are in a illegal order(correct id but no CLOSE between LONG and SHORT positions), also if new signals are " +
     "received later with the same id's but correct order thay should be acceted" in {
     // illegal
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 244.453,
@@ -141,7 +142,7 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("invalid sequence of signals"))
     }
     // Correct
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -169,12 +170,12 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val response = responseAs[String]
-      assert(response.contains("btcaddress"))
+      assert(response.contains("coinbase-account-id"))
     }
   }
 
   it should "responds with 'NotAcceptable' when the id has te expected next id but the posting is the same as the last position" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -204,7 +205,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "responds with 'Conflict' when a signal that is the same as last signal is added. The responds body should include the stream object for the stream" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 284.453,
@@ -221,20 +222,20 @@ class FullServiceSpec extends TestService {
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get("/streams/btcaddress") ~> routes ~> check {
+    Get("/streams/coinbase-account-id") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains("btcaddress"))
+      assert(respons.contains("coinbase-account-id"))
       assert(!respons.contains("topicArn"))
       assert(!respons.contains("apiKey"))
     }
   }
 
   it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get("/streams/btcaddress?private=true") ~> routes ~> check {
+    Get("/streams/coinbase-account-id?private=true") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains("btcaddress"))
+      assert(respons.contains("coinbase-account-id"))
       assert(respons.contains("topicArn"))
       assert(respons.contains("apiKey"))
     }
@@ -253,7 +254,7 @@ class FullServiceSpec extends TestService {
 
   it should "handle AWS SNS subscription messages" in {
     // putted in a lot of crap in the body to se it finds the correct key value pare the interacting value is 'SubscribeURL'
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
       """{
       "Type" : "Notification",
       "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
@@ -272,7 +273,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "handle new signals incoming as AWS SNS messages" in {
-    Post("/streams/btcaddress/signals",
+    Post("/streams/coinbase-account-id/signals",
     """{
       "Type" : "Notification",
       "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
@@ -294,7 +295,7 @@ class FullServiceSpec extends TestService {
     Get("/streams") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      respons.contains("btcaddress")
+      respons.contains("coinbase-account-id")
     }
   }
 

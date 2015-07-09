@@ -1,5 +1,7 @@
 package com.cluda.coinsignals.streams.util
 
+import java.util.UUID
+
 import awscala.dynamodbv2._
 import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.model.{StreamPrivate, ComputeComponents, SStream, StreamStats}
@@ -30,8 +32,11 @@ object DatabaseUtil {
       "currencyPair" -> stream.currencyPair,
       "apiKey" -> stream.streamPrivate.apiKey,
       "topicArn" -> stream.streamPrivate.topicArn,
+      "payoutAddress" -> stream.streamPrivate.payoutAddress,
+
       "status" -> stream.status,
       "idOfLastSignal" -> stream.idOfLastSignal,
+      "subscriptionPriceUSD" -> stream.subscriptionPriceUSD,
 
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
@@ -69,8 +74,8 @@ object DatabaseUtil {
    * @param newStream id of the stream
    * @return
    */
-  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String): String = {
-    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, 0, 0, StreamPrivate(newStream.apiKey, topicArn)))
+  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String, apiKey: String): String = {
+    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD, StreamPrivate(apiKey, topicArn, newStream.payoutAddress)))
   }
 
 
@@ -110,7 +115,8 @@ object DatabaseUtil {
 
     val sPrivate = StreamPrivate(
       apiKey = attrMap("apiKey"),
-      topicArn = attrMap("topicArn")
+      topicArn = attrMap("topicArn"),
+      payoutAddress = attrMap("payoutAddress")
     )
 
     val stream = SStream(
@@ -119,6 +125,7 @@ object DatabaseUtil {
       currencyPair = attrMap("currencyPair"),
       status = attrMap("status").toInt,
       idOfLastSignal = attrMap("idOfLastSignal").toLong,
+      subscriptionPriceUSD = BigDecimal(attrMap("subscriptionPriceUSD")),
       stats = stats,
       computeComponents = cComponents,
       streamPrivate = sPrivate

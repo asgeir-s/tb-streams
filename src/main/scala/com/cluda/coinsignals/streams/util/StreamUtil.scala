@@ -222,23 +222,27 @@ object StreamUtil {
       stream.currencyPair, 
       signal.signal,
       signal.id,
+      stream.subscriptionPriceUSD,
       StreamPrivate(
         stream.streamPrivate.apiKey,
-        stream.streamPrivate.topicArn),
+        stream.streamPrivate.topicArn,
+        stream.streamPrivate.payoutAddress),
       adoptedStreamStats,
       cComponents)
   }
 
-  def checkRoundedEquality(stream1: SStream, stream2: SStream): Boolean = {
+  def checkRoundedEqualityExceptApiKey(stream1: SStream, stream2: SStream): Boolean = {
     if (stream1 == stream2) {
       true
     }
     else {
-      stream1.streamPrivate.apiKey == stream2.streamPrivate.apiKey &&
+      stream1.streamPrivate.payoutAddress == stream2.streamPrivate.payoutAddress &&
+      //stream1.streamPrivate.apiKey == stream2.streamPrivate.apiKey &&
         stream1.streamPrivate.topicArn == stream2.streamPrivate.topicArn &&
         stream1.computeComponents == stream2.computeComponents &&
         stream1.currencyPair == stream2.currencyPair &&
         stream1.exchange == stream2.exchange &&
+        stream1.subscriptionPriceUSD == stream2.subscriptionPriceUSD &&
         stream1.id == stream2.id &&
         stream1.idOfLastSignal == stream2.idOfLastSignal &&
         stream1.status == stream2.status &&

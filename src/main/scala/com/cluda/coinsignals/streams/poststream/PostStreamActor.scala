@@ -1,5 +1,7 @@
 package com.cluda.coinsignals.streams.poststream
 
+import java.util.UUID
+
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import awscala.dynamodbv2._
@@ -75,9 +77,9 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
         subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
-
-        DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn)
-        s ! HttpResponse(StatusCodes.Accepted, entity = """{"id":""" + newStream.id + "}")
+        val apiKey = UUID.randomUUID().toString
+        DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
+        s ! HttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
         self ! PoisonPill
       }
 

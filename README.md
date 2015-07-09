@@ -3,10 +3,11 @@ Microservice used in the coinsignals project.
 
 ## Interface
 	POST: /streams {	
-		"id": "btcaddress",
-    	"exchange": "bitstamp",
-    	"currencyPair": "btcUSD",
-    	"apiKey": "secretkeyOrWhat" 
+    	"id": "coinbase-account-id",
+        "exchange": "bitstamp",
+        "currencyPair": "btcUSD",
+        "payoutAddress": "publishers-bitcoin-address",
+        "subscriptionPriceUSD": 5
     }
     
     POST: /streams/'streamID'/signals {
