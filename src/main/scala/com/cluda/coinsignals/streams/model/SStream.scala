@@ -24,6 +24,7 @@ case class SStream(
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
+      """ "subscriptionPriceUSD": """" + subscriptionPriceUSD + """",""" +
       """ "stats": """ + stats.toJson.compactPrint + """}"""
     println(json)
     json
@@ -35,6 +36,7 @@ case class SStream(
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
+      """ "subscriptionPriceUSD": """" + subscriptionPriceUSD + """",""" +
       """ "status": """" + status + """",""" +
       """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
