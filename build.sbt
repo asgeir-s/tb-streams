@@ -31,7 +31,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %%    "akka-http-testkit-experimental"          %     akkaStreamV,
     "org.scalatest"         %%    "scalatest"                               %     scalaTestV      %     "test",
     "com.github.seratch"    %%    "awscala"                                 %     "0.5.+",
-    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.9.36"
+    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.10.5"
 
   )
 }
