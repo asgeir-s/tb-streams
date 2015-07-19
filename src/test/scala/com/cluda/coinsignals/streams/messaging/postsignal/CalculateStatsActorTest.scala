@@ -17,7 +17,7 @@ import com.typesafe.config.ConfigFactory
 class CalculateStatsActorTest extends MessagingTest {
 
   val testTableName = "calculateStatsActorTest"
-  val testStreamName = UUID.randomUUID().toString
+  val testStreamName = "calculateStatsActorTest-stream"
   val testStreamApiKey = "key"
 
   val config = ConfigFactory.load()
@@ -29,6 +29,7 @@ class CalculateStatsActorTest extends MessagingTest {
   override def beforeAll(): Unit = {
     val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
+    DatabaseUtil.removeStream(database, table, testStreamName)
     DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "btcAddress", 10), "topicARN", testStreamApiKey)
   }
 
@@ -92,12 +93,6 @@ class CalculateStatsActorTest extends MessagingTest {
     assert(underlyingActor.context.children.isEmpty)
     asker.send(actor, Seq(Signal(8, 1, TestData.timestamp + 10, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5))))
     assert(underlyingActor.context.children.size == 1)
-  }
-
-  override def afterAll(): Unit = {
-    val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
-    val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
-    DatabaseUtil.removeStream(database, table, testStreamName)
   }
 
 }
