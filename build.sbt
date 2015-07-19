@@ -19,7 +19,7 @@ mainClass in assembly := Some("com.cluda.coinsignals.streams.Boot")
 resolvers += "sonatype-oss-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots" // for xchange snapshots
 
 libraryDependencies ++= {
-  val akkaV       = "2.3.11"
+  val akkaV       = "2.3.12"
   val akkaStreamV = "1.0"
   val scalaTestV  = "2.2.4"
   Seq(
