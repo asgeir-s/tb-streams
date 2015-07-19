@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
 import com.cluda.coinsignals.streams.getstream.GetStreamsActor
@@ -25,7 +25,7 @@ trait Service {
 
   implicit def executor: ExecutionContextExecutor
 
-  implicit val materializer: FlowMaterializer
+  implicit val materializer: Materializer
 
   implicit val timeout: Timeout
 

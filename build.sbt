@@ -20,7 +20,7 @@ resolvers += "sonatype-oss-snapshot" at "https://oss.sonatype.org/content/reposi
 
 libraryDependencies ++= {
   val akkaV       = "2.3.11"
-  val akkaStreamV = "1.0-RC3"
+  val akkaStreamV = "1.0"
   val scalaTestV  = "2.2.4"
   Seq(
     //"com.typesafe.akka"   %%    "akka-actor"                              %     akkaV,
@@ -31,7 +31,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %%    "akka-http-testkit-experimental"          %     akkaStreamV,
     "org.scalatest"         %%    "scalatest"                               %     scalaTestV      %     "test",
     "com.github.seratch"    %%    "awscala"                                 %     "0.5.+",
-    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.10.5"
+    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.10.+"
 
   )
 }

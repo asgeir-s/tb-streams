@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.cluda.coinsignals.streams.model.Signal
 import com.typesafe.config.ConfigFactory
@@ -14,7 +14,7 @@ import scala.concurrent.{Future, Promise}
 
 class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
 
-  implicit val materializer = ActorFlowMaterializer()
+  implicit val materializer = ActorMaterializer()
   implicit val actorSystem = context.system
   implicit val ec = context.system.dispatcher
 
