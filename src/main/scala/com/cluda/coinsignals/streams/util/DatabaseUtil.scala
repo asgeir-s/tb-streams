@@ -20,7 +20,7 @@ object DatabaseUtil {
   }
 
   def removeStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Unit = {
-    table.delete(streamID)
+    table.deleteItem(streamID)
     println("REMOVED stream with id: " + streamID)
   }
 

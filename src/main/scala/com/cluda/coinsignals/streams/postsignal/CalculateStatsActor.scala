@@ -18,6 +18,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
     log.error("could not find streams-table (" + tableName + ")")
     context.parent ! StreamDoesNotExistException(
       "could not find streams-table (" + tableName + ")")
+    self ! PoisonPill
   }
 
   private val streamsTable: Table = dynamoDB.table(tableName).get
@@ -47,7 +48,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
       }
 
       else {
-        var sStream: SStream = DatabaseUtil.getStream(dynamoDB, streamsTable, streamID).get
+        var sStream: SStream = stream.get
         val newSignals = signals.filter(_.id > sStream.idOfLastSignal)
 
         if (newSignals.isEmpty) {
