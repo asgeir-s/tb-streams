@@ -1,5 +1,7 @@
 package com.cluda.coinsignals.streams.messaging.postsignal
 
+import java.util.UUID
+
 import akka.testkit.{TestActorRef, TestProbe}
 import awscala._
 import awscala.dynamodbv2.DynamoDB
@@ -15,7 +17,7 @@ import com.typesafe.config.ConfigFactory
 class CalculateStatsActorTest extends MessagingTest {
 
   val testTableName = "calculateStatsActorTest"
-  val testStreamName = "calculateStatsActorTestStream"
+  val testStreamName = UUID.randomUUID().toString
   val testStreamApiKey = "key"
 
   val config = ConfigFactory.load()
@@ -38,7 +40,7 @@ class CalculateStatsActorTest extends MessagingTest {
     val responds = asker.expectMsgType[SStream]
     println(responds)
     println(TestData.mathStream2actor)
-    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream2actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream2actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -48,7 +50,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(4)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream3actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream3actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -58,7 +60,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(3), TestData.signalSeqMath(2), TestData.signalSeqMath(1)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream6actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream6actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -68,7 +70,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(0)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKey(responds, TestData.mathStream7actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream7actor))
   }
 
   "when it receive a signal that has a id smaller then the last processed signal it" should
@@ -92,5 +94,10 @@ class CalculateStatsActorTest extends MessagingTest {
     assert(underlyingActor.context.children.size == 1)
   }
 
+  override def afterAll(): Unit = {
+    val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+    val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
+    DatabaseUtil.removeStream(database, table, testStreamName)
+  }
 
 }

@@ -19,6 +19,11 @@ object DatabaseUtil {
     awscala.dynamodbv2.DynamoDB(awscalaCredentials)
   }
 
+  def removeStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Unit = {
+    table.delete(streamID)
+    println("REMOVED stream with id: " + streamID)
+  }
+
   /**
    *
    * @param table streamsTable

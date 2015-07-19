@@ -231,7 +231,7 @@ object StreamUtil {
       cComponents)
   }
 
-  def checkRoundedEqualityExceptApiKey(stream1: SStream, stream2: SStream): Boolean = {
+  def checkRoundedEqualityExceptApiKeyAndID(stream1: SStream, stream2: SStream): Boolean = {
     if (stream1 == stream2) {
       true
     }
@@ -243,7 +243,7 @@ object StreamUtil {
         stream1.currencyPair == stream2.currencyPair &&
         stream1.exchange == stream2.exchange &&
         stream1.subscriptionPriceUSD == stream2.subscriptionPriceUSD &&
-        stream1.id == stream2.id &&
+        //stream1.id == stream2.id &&
         stream1.idOfLastSignal == stream2.idOfLastSignal &&
         stream1.status == stream2.status &&
         stream1.stats.accumulatedLoss.toDouble == stream2.stats.accumulatedLoss.toDouble &&
