@@ -25,12 +25,13 @@ object DatabaseUtil {
   }
 
   /**
+   * Blocking!
    *
    * @param table streamsTable
    * @param stream id of the stream
    * @return
    */
-  def putStream(implicit dynamoDB: DynamoDB, table: Table, stream: SStream): String = {
+  def putStream(implicit dynamoDB: DynamoDB, table: Table, stream: SStream): SStream = {
     table.put(
       stream.id,
       "exchange" -> stream.exchange,
@@ -70,16 +71,23 @@ object DatabaseUtil {
       "maxDDPrevMin" -> stream.computeComponents.maxDDPrevMin,
       "maxDDMax" -> stream.computeComponents.maxDDMax
     )
-    stream.id
+
+    var streamFromDB = getStream(dynamoDB, table, stream.id)
+    while (!streamFromDB.isDefined) {
+      Thread.sleep(200)
+      streamFromDB = getStream(dynamoDB, table, stream.id)
+    }
+    streamFromDB.get
   }
 
   /**
+   * Blocking!
    *
    * @param table streamsTable
    * @param newStream id of the stream
    * @return
    */
-  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String, apiKey: String): String = {
+  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String, apiKey: String): SStream = {
     putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD, StreamPrivate(apiKey, topicArn, newStream.payoutAddress)))
   }
 

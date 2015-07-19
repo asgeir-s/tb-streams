@@ -30,7 +30,6 @@ class CalculateStatsActorTest extends MessagingTest {
     val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
     DatabaseUtil.putNewStream(database, table, NewStream(testStreamName, "bitstamp", "btcUSD", "btcAddress", 10), "topicARN", testStreamApiKey)
-    Thread.sleep(5000)
   }
 
   "when it receives a signal it" should

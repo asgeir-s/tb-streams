@@ -16,7 +16,7 @@ class DatabaseUtilTest extends UnitTest {
 
   "when putting a stream and getting it abck from the database the stream" should
     "be the same" in {
-    val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.adoptedStream)
+    val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.adoptedStream).id
     assert(idBack == TestData.adoptedStream.id)
     val streamBack = DatabaseUtil.getStream(dynamoDB, testDatabase, idBack)
     assert(streamBack.isDefined)
@@ -25,7 +25,7 @@ class DatabaseUtilTest extends UnitTest {
 
   "when putting a stream and getting it abck from the database the stream for a new stream" should
     "be the same" in {
-    val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.freshStream)
+    val idBack = DatabaseUtil.putStream(dynamoDB, testDatabase, TestData.freshStream).id
     assert(idBack == TestData.freshStream.id)
     val streamBack = DatabaseUtil.getStream(dynamoDB, testDatabase, idBack)
     assert(streamBack.isDefined)
