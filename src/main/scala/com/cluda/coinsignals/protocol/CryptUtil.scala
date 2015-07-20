@@ -15,6 +15,15 @@ import org.apache.commons.codec.binary.{Base64, Hex}
 
 object CryptUtil {
 
+  val config = ConfigFactory.load()
+  val salt = config.getString("crypt.salt").getBytes
+  val password = config.getString("crypt.password").toCharArray
+  val hKey = config.getString("crypt.hmac")
+
+  val tokenSalt = config.getString("crypt.token.salt").getBytes
+  val tokenPassword = config.getString("crypt.token.password").toCharArray
+  val tokenHKey = config.getString("crypt.token.hmac")
+
   val cipherString = "AES/CBC/PKCS5Padding"
 
   /**
@@ -62,10 +71,6 @@ object CryptUtil {
   }
 
   def generateSecureMessage(message: String): String = {
-    val config = ConfigFactory.load()
-    val salt = config.getString("crypt.salt").getBytes
-    val password = config.getString("crypt.password").toCharArray
-    val hKey = config.getString("crypt.hmac")
 
     val enc = encrypt(message.getBytes, salt, password)
     val encMessage = enc._1
@@ -76,11 +81,32 @@ object CryptUtil {
     """{"hash":"""" + hmac + """","iv":"""" + encIv + """","data":"""" + encMessage + """"}"""
   }
 
+  def generateSecureToken(message: String): String = {
+
+    val enc = encrypt(message.getBytes, tokenSalt, tokenPassword)
+    val encMessage = enc._1
+    val encIv = enc._2
+
+    val hmac = hmacEncode(encMessage, tokenHKey)
+
+    """{"hash":"""" + hmac + """","iv":"""" + encIv + """","data":"""" + encMessage + """"}"""
+  }
+
   def receiveSecureMessage(message: String): Option[String] = {
-    val config = ConfigFactory.load()
-    val salt = config.getString("crypt.salt").getBytes
-    val password = config.getString("crypt.password").toCharArray
-    val hKey = config.getString("crypt.hmac")
+    receiveSecureMessageWithKey(message, hKey, salt, password)
+  }
+
+  def validateToken(token: String): Boolean = {
+    if(receiveSecureMessageWithKey(token, tokenHKey, tokenSalt, tokenPassword).isDefined) {
+      true
+    }
+    else {
+      false
+    }
+  }
+
+
+    def receiveSecureMessageWithKey(message: String, theHKey: String, salt: Array[Byte], password: Array[Char]): Option[String] = {
 
     import spray.json._
 
@@ -92,7 +118,7 @@ object CryptUtil {
     val iv = fields(2).toString().drop(1).dropRight(1)
 
     try {
-      if (hmacEncode(data, hKey) == hash) {
+      if (hmacEncode(data, theHKey) == hash) {
         Some(decrypt(data.getBytes, iv, salt, password))
       }
       else {
