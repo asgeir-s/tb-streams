@@ -16,7 +16,7 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
   override def receive: Receive = {
     case (streamId: String, privateInfo: Boolean) =>
       if (tableIsEmpty) {
-        sender() ! HttpResponse(StatusCodes.NotFound)
+        sender() ! secureHttpResponse(StatusCodes.NotFound)
       }
       else {
         val table = dynamoDB.table(tableName).get
