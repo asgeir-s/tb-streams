@@ -39,7 +39,7 @@ trait Service {
 
   val streamsTableName: String
 
-  val authHeaderName = config.getString("auth.haderName")
+  val authHeaderName = "x-groza-thow"
 
   /**
    * Start a actor and pass it the decodedHttpRequest.
