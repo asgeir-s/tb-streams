@@ -7,7 +7,7 @@ import awscala._
 import awscala.dynamodbv2.DynamoDB
 import com.amazonaws.regions.Region
 import com.amazonaws.services.sns.model.DeleteTopicRequest
-import com.cluda.coinsignals.protocol.SendReceiveHelper
+import com.cluda.coinsignals.protocol.Sec
 import com.typesafe.config.ConfigFactory
 
 class FullServiceSpec extends TestService {
@@ -16,7 +16,7 @@ class FullServiceSpec extends TestService {
 
   it should "responds accept the new stream and return the id" in {
     Post("/streams",
-      SendReceiveHelper.secureMessage(
+      Sec.secureMessage(
       """{
         |"id": "coinbase-account-id",
         |"exchange": "bitstamp",
@@ -24,9 +24,9 @@ class FullServiceSpec extends TestService {
         |"payoutAddress": "publishers-bitcoin-address",
         |"subscriptionPriceUSD": 5
         |}""".stripMargin)
-    ) ~> routes ~> check {
+    ).addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       println(respons)
       assert(respons.contains("id"))
       assert(respons.contains("apiKey"))
@@ -47,7 +47,7 @@ class FullServiceSpec extends TestService {
           |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -72,7 +72,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -105,7 +105,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -141,7 +141,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe NotAcceptable
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       assert(respons.contains("invalid sequence of signals"))
     }
     // Correct
@@ -172,7 +172,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -219,16 +219,16 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Conflict
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responseAs[String]).get
+      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
     }
   }
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get("/streams/coinbase-account-id") ~> routes ~> check {
+    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe OK
       val responsRaw = responseAs[String]
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responsRaw).get
+      val respons = Sec.validateAndDecryptMessage(responsRaw).get
       assert(respons.contains("coinbase-account-id"))
       assert(!respons.contains("topicArn"))
       assert(!respons.contains("apiKey"))
@@ -236,10 +236,10 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get("/streams/coinbase-account-id?private=true") ~> routes ~> check {
+    Get("/streams/coinbase-account-id?private=true").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe OK
       val responsRaw = responseAs[String]
-      val respons = SendReceiveHelper.vaidateAndReceiveMessage(responsRaw).get
+      val respons = Sec.validateAndDecryptMessage(responsRaw).get
       assert(respons.contains("coinbase-account-id"))
       assert(respons.contains("topicArn"))
       assert(respons.contains("apiKey"))
@@ -247,11 +247,11 @@ class FullServiceSpec extends TestService {
   }
 
   it should "respondse with NoCOntent when trying to retreive a stream that does not exist" in {
-    Get("/streams/fackestream?private=true") ~> routes ~> check {
+    Get("/streams/fackestream?private=true").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe NotFound
     }
 
-    Get("/streams/fackestream") ~> routes ~> check {
+    Get("/streams/fackestream").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -309,7 +309,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to get all streams" in {
-    Get("/streams") ~> routes ~> check {
+    Get("/streams").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       respons.contains("coinbase-account-id")
@@ -338,7 +338,7 @@ class FullServiceSpec extends TestService {
       "TopicArn" : "arn:aws:sns:us-west-2:123456789012:MyTopic",
       "Subject" : "My First Message",
       "Message" : """" +
-        SendReceiveHelper.secureMessage(signals) + """",
+        Sec.secureMessage(signals) + """",
       "Timestamp" : "2012-05-02T00:54:06.655Z",
       "SignatureVersion" : "1",
       "Signature" : "EXAMPLEw6JRNwm1LFQL4ICB0bnXrdB8ClRMTQFGBqwLpGbM78tJ4etTwC5zU7O3tS6tGpey3ejedNdOJ+1fkIp9F2/LmNVKb5aFlYq+9rk9ZiPph5YlLmWsDcyC5T+Sy9/umic5S0UQc2PEtgdpVBahwNOdMW4JPwk0kAJJztnc=",

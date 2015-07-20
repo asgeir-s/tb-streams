@@ -9,7 +9,7 @@ import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
 import com.amazonaws.services.sns.AmazonSNSClient
-import com.cluda.coinsignals.protocol.SendReceiveHelper
+import com.cluda.coinsignals.protocol.Sec
 import com.cluda.coinsignals.streams.protocoll.NewStream
 import com.cluda.coinsignals.streams.util.{AwsSnsUtil, DatabaseUtil}
 import com.typesafe.config.ConfigFactory
@@ -80,7 +80,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
         subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
         val apiKey = UUID.randomUUID().toString
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
-        s ! SendReceiveHelper.SecureHttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
+        s ! Sec.secureHttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
         self ! PoisonPill
       }
 
