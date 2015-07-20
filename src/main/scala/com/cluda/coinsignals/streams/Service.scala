@@ -6,6 +6,9 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.server.RouteResult.Rejected
+import com.cluda.coinsignals.protocol.SendReceiveHelper
+import com.cluda.coinsignals.protocol.SendReceiveHelper._
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.stream.Materializer
@@ -45,7 +48,7 @@ trait Service {
    */
   def perRequestActor[T](props: Props, message: T): Future[HttpResponse] = {
     (system.actorOf(props) ? message)
-      .recover { case _ => HttpResponse(BadRequest, entity = "BadRequest") }
+      .recover { case _ => SecureHttpResponse(BadRequest, entity = "BadRequest") }
       .asInstanceOf[Future[HttpResponse]]
   }
 
@@ -60,69 +63,77 @@ trait Service {
   }
 
   val routes = {
-      pathPrefix("streams") {
-        pathPrefix(Segment) { streamID =>
-          get {
-            parameters('private.as[Boolean].?) { privateInfo =>
-              complete {
-                perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
-              }
+    pathPrefix("streams") {
+      pathPrefix(Segment) { streamID =>
+        get {
+          parameters('private.as[Boolean].?) { privateInfo =>
+            complete {
+              perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
             }
-          } ~
-            pathPrefix("signals") {
-              post {
-                entity(as[String]) { bodyString =>
-                  optionalHeaderValueByName("x-amz-sns-message-type") { awsMessageType =>
-                    import spray.json._
-                    // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
-                    if (awsMessageType.isDefined && awsMessageType.get == "SubscriptionConfirmation") {
-                      val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
-                        .replaceAll( """"""", "")
-                        .replace("https://", "")
-                        .replace("http://", "")
-                      complete(
-                        confirmAwsSnsSubscription(confirmUrl)
-                      )
-                    }
-                    else {
-                      import SignalJsonProtocol._
-                      val signals =
-                        if (awsMessageType.isDefined && awsMessageType.get == "Notification") {
-                          val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
-                          val decoded = message.replace( """\n""", " ").replace( """\""", "")
-                          val removeFirstAndLAst = decoded.substring(1, decoded.length-1)
-                          val json = removeFirstAndLAst.parseJson
-                          json.convertTo[Seq[Signal]]
-                        }
-                        else {
-                          bodyString.parseJson.convertTo[Seq[Signal]]
-                        }
+          }
+        } ~
+          pathPrefix("signals") {
+            post {
+              entity(as[String]) { bodyString =>
+                optionalHeaderValueByName("x-amz-sns-message-type") { awsMessageType =>
+                  import spray.json._
+                  // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
+                  if (awsMessageType.isDefined && awsMessageType.get == "SubscriptionConfirmation") {
+                    val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
+                      .replaceAll( """"""", "")
+                      .replace("https://", "")
+                      .replace("http://", "")
+                    complete(
+                      confirmAwsSnsSubscription(confirmUrl)
+                    )
+                  }
+                  else {
+                    import SignalJsonProtocol._
+                    if (awsMessageType.isDefined && awsMessageType.get == "Notification") {
+                      val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
+                      val decoded = message.replace( """\n""", " ").replace( """\""", "")
+                      val removeFirstAndLAst = decoded.substring(1, decoded.length - 1)
+                      val validated = SendReceiveHelper.vaidateAndReceiveMessage(removeFirstAndLAst)
+
+                      val json = validated.getOrElse("").parseJson
                       complete {
-                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), signals)
+                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
                       }
                     }
-
+                    else {
+                      reject
+                    }
                   }
+
                 }
               }
             }
-        } ~
-          post {
-            import NewStreamJsonProtocol._
-            import spray.json._
-            entity(as[String]) { streamString =>
+          }
+      } ~
+        post {
+          import NewStreamJsonProtocol._
+          import spray.json._
+          entity(as[String]) { message =>
+            val streamStringOpt = vaidateAndReceiveMessage(message)
+
+            if (streamStringOpt.isDefined) {
+              val streamString = streamStringOpt.get
               val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
               complete {
                 perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
               }
             }
-          } ~
+            else {
+              complete(SecureHttpResponse(BadRequest, entity = "BadRequest"))
+            }
+          }
+        } ~
         get {
           complete {
             perRequestActor[String](GetStreamsActor.props(streamsTableName), "all")
           }
         }
-      }
+    }
 
 
   }

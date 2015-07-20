@@ -3,6 +3,7 @@ package com.cluda.coinsignals.streams.getstream
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import awscala._
+import com.cluda.coinsignals.protocol.SendReceiveHelper._
 import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.typesafe.config.ConfigFactory
 
@@ -22,10 +23,10 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
         val stream = DatabaseUtil.getStream(dynamoDB, table, streamId)
         if (stream.isDefined) {
           if (privateInfo) {
-            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.privateJson)
+            sender() ! SecureHttpResponse(StatusCodes.OK, entity = stream.get.privateJson)
           }
           else {
-            sender() ! HttpResponse(StatusCodes.OK, entity = stream.get.publicJson)
+            sender() ! SecureHttpResponse(StatusCodes.OK, entity = stream.get.publicJson)
           }
         }
         else {
@@ -36,11 +37,11 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
 
     case "all" =>
       if (tableIsEmpty) {
-        sender() ! HttpResponse(StatusCodes.OK, entity = "[]")
+        sender() ! SecureHttpResponse(StatusCodes.OK, entity = "[]")
       }
       else {
         val table = dynamoDB.table(tableName).get
-        sender() ! HttpResponse(StatusCodes.OK, entity =
+        sender() ! SecureHttpResponse(StatusCodes.OK, entity =
           "[" + DatabaseUtil.getAllStreams(dynamoDB, table).map(_.publicJson).mkString(",") + "]")
       }
 
