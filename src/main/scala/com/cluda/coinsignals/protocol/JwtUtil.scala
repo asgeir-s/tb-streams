@@ -11,7 +11,11 @@ import org.jose4j.jwt.consumer.{InvalidJwtException, JwtConsumerBuilder}
  */
 object JwtUtil {
 
-  def create(str: String): String = {
+  def create(str: String) = createWithKey(str, key)
+
+  def createToken(str: String) = createWithKey(str, tokenKey)
+
+  def createWithKey(str: String, webKey: JsonWebKey): String = {
 
     val webKey = key
 
@@ -59,8 +63,11 @@ object JwtUtil {
     jwt
   }
 
-  def validateAndRetrieve(jwt: String): Option[String] = {
-    val webKey = key
+  def validateAndRetrieveToken(jwt: String) = validateAndRetrieveWithKey(jwt, tokenKey)
+
+  def validateAndRetrieve(jwt: String) = validateAndRetrieveWithKey(jwt, key)
+
+  def validateAndRetrieveWithKey(jwt: String, webKey: JsonWebKey): Option[String] = {
 
     // Use JwtConsumerBuilder to construct an appropriate JwtConsumer, which will
     // be used to validate and process the JWT.
@@ -101,6 +108,16 @@ object JwtUtil {
     val config = ConfigFactory.load()
     val kty = config.getString("crypt.jwt.kty")
     val k = config.getString("crypt.jwt.k")
+    val key = """{ "kty":"""" + kty + """", "k": """" + k + """"}"""
+
+    JsonWebKey.Factory.newJwk(key)
+  }
+
+  private def tokenKey: JsonWebKey = {
+
+    val config = ConfigFactory.load()
+    val kty = config.getString("crypt.token.jwt.kty")
+    val k = config.getString("crypt.token.jwt.k")
     val key = """{ "kty":"""" + kty + """", "k": """" + k + """"}"""
 
     JsonWebKey.Factory.newJwk(key)

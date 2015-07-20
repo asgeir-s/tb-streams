@@ -1,12 +1,9 @@
 package com.cluda.coinsignals.protocol
 
-import java.security.SecureRandom
 import java.util.UUID
 
-import akka.http.javadsl.server.values.Headers
-import akka.http.scaladsl.model.HttpMethods._
-import akka.http.scaladsl.model.headers.{RawHeader, Authorization}
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.RawHeader
 
 /**
  * Created by sogasg on 20/07/15.
@@ -36,21 +33,13 @@ object Sec {
   }
 
   def headerToken: RawHeader = {
-    RawHeader("x-groza-thow", secureMessage(UUID.randomUUID().toString + "accepted" + UUID.randomUUID().toString))
+    val encryptedToken = CryptUtil.generateSecureToken(UUID.randomUUID().toString + "accepted" + UUID.randomUUID().toString)
+    val jwtToken = JwtUtil.createToken(encryptedToken)
+    RawHeader("x-groza-thow", jwtToken)
   }
 
-  def authRequest(authHeaderValue: String): Boolean = {
-      val decryptedOpt = validateAndDecryptMessage(authHeaderValue)
-      if (decryptedOpt.isDefined) {
-        if (decryptedOpt.get.contains("accepted")) {
-          true
-        }
-        else {
-          false
-        }
-      }
-      else {
-        false
-      }
-    }
+  def autenticated(token: String): Boolean = {
+    val encryptedToken = JwtUtil.validateAndRetrieveToken(token).get
+    CryptUtil.validateToken(encryptedToken)
+  }
 }

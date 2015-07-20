@@ -67,7 +67,7 @@ trait Service {
 
   val routes = {
     headerValueByName(authHeaderName) { auth =>
-      if (authRequest(auth)) {
+      if (autenticated(auth)) {
         pathPrefix("streams") {
           pathPrefix(Segment) { streamID =>
             get {
