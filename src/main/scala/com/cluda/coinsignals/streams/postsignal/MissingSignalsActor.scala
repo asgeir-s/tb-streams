@@ -37,10 +37,11 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
       Unmarshal(x.entity).to[String].map { body =>
         val validatedAndDecrypted = Sec.validateAndDecryptMessage(body)
         if(validatedAndDecrypted.isDefined) {
-          promise.success(body.parseJson.convertTo[Seq[Signal]])
+          promise.success(validatedAndDecrypted.get.parseJson.convertTo[Seq[Signal]])
         }
         else {
-          promise.success(body.parseJson.convertTo[Seq[Signal]])
+          log.error("Could not validate and decrypt message. The raw http body was: " + body)
+          promise.failure(new Exception("Could not validate and decrypt message. The raw http body was: " + body))
 
         }
       }

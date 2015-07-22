@@ -16,8 +16,13 @@ object Sec {
   }
 
   def validateAndDecryptMessage(message: String): Option[String] = {
-    val encryptedMessage = JwtUtil.validateAndRetrieve(message).get
-    CryptUtil.receiveSecureMessage(encryptedMessage)
+    val encryptedMessageOpt = JwtUtil.validateAndRetrieve(message)
+    if (encryptedMessageOpt.isDefined) {
+      CryptUtil.receiveSecureMessage(encryptedMessageOpt.get)
+    }
+    else {
+      None
+    }
   }
 
   def secureHttpResponse(statusCode: StatusCode, entity: String): HttpResponse = {

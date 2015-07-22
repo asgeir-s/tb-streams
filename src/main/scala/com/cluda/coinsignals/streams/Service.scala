@@ -92,6 +92,7 @@ trait Service {
                   }
                 }
                 else {
+                  logger.warning("Received unvalide (could not be validated and decrypted) /streams POST message. Message was: " + message)
                   complete(secureHttpResponse(BadRequest, entity = "BadRequest"))
                 }
               }
@@ -131,12 +132,21 @@ trait Service {
                       val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
                       val decoded = message.replace( """\n""", " ").replace( """\""", "")
                       val removeFirstAndLAst = decoded.substring(1, decoded.length - 1)
-                      val validated = Sec.validateAndDecryptMessage(removeFirstAndLAst)
+                      val validatedOpt = Sec.validateAndDecryptMessage(removeFirstAndLAst)
 
-                      val json = validated.getOrElse("").parseJson
-                      complete {
-                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
+                      if(validatedOpt.isDefined) {
+                        val json = validatedOpt.get.parseJson
+                        complete {
+                          perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
+                        }
                       }
+                      else {
+                        logger.warning("Received unvalide (could not be validated and decrypted) /streams/" + streamID + "/signals  POST message with header x-amz-sns-message-type: Notification. Message was: " + message)
+                        complete {
+                          Sec.secureHttpResponse(BadRequest)
+                        }
+                      }
+
                     }
                     else {
                       reject
