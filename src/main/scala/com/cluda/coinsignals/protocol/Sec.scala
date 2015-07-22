@@ -33,6 +33,10 @@ object Sec {
     HttpResponse(statusCode).addHeader(headerToken)
   }
 
+  def secureHttpRequest(statusCode: HttpMethod, uri: String, entity: String): HttpRequest = {
+    HttpRequest(statusCode, uri = uri, entity = secureMessage(entity)).addHeader(headerToken)
+  }
+
   def secureHttpRequest(statusCode: HttpMethod, uri: String): HttpRequest = {
     HttpRequest(statusCode, uri = uri).addHeader(headerToken)
   }
