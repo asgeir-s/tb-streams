@@ -78,7 +78,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
         subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
-        val apiKey = UUID.randomUUID().toString
+        val apiKey = UUID.randomUUID().toString // TODO: wraped in JWT and including id
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
         s ! Sec.secureHttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
         self ! PoisonPill
