@@ -81,7 +81,8 @@ trait Service {
                 post {
                   entity(as[String]) { message =>
                     try {
-                      val newPrice = BigDecimal(message)
+                      val validatedMessage = validateAndDecryptMessage(message).get
+                      val newPrice = BigDecimal(validatedMessage)
                       complete(
                       perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
                       )

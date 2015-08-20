@@ -318,7 +318,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to change the subscription price" in {
-    Post("/streams/coinbase-account-id/subscription-price", "4.66").addHeader(Sec.headerToken) ~> routes ~> check {
+    Post("/streams/coinbase-account-id/subscription-price", Sec.secureMessage("4.66")).addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe Accepted
     }
 
@@ -329,7 +329,7 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("4.66"))
     }
 
-    Post("/streams/coinbase-account-id/subscription-price", "40.33").addHeader(Sec.headerToken) ~> routes ~> check {
+    Post("/streams/coinbase-account-id/subscription-price", Sec.secureMessage("40.33")).addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe Accepted
     }
 
