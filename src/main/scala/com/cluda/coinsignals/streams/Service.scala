@@ -150,11 +150,11 @@ trait Service {
                   // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
                   if (awsMessageType == "SubscriptionConfirmation") {
                     val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
-                      .replaceAll( """"""", "")
                       .replace("https://", "")
                       .replace("http://", "")
+                      .trim
                     complete(
-                      confirmAwsSnsSubscription(confirmUrl)
+                      confirmAwsSnsSubscription(confirmUrl.substring(1, confirmUrl.length-1))
                     )
                   }
                   else {
