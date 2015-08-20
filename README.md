@@ -1,5 +1,5 @@
 # Streams Microservice
-Microservice used in the coinsignals project.
+Microservice used in the coinsignals project. 
 
 ## Interface
 	POST: /streams {	
