@@ -5,8 +5,9 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
 import akka.http.scaladsl.server.RouteResult.Rejected
+import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.cluda.coinsignals.protocol.Sec
 import com.cluda.coinsignals.protocol.Sec._
 import akka.http.scaladsl.server.Directives._
@@ -19,10 +20,11 @@ import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
 import com.cluda.coinsignals.streams.protocoll.{NewStream, NewStreamJsonProtocol}
+import com.cluda.coinsignals.streams.util.HttpUtil
 import com.typesafe.config.Config
 
 
-import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.concurrent.{Promise, ExecutionContextExecutor, Future}
 
 trait Service {
   implicit val system: ActorSystem
@@ -56,14 +58,25 @@ trait Service {
   }
 
   def confirmAwsSnsSubscription(subscribeURL: String): Future[HttpResponse] = {
+
+    logger.info("subscribeURL: " + subscribeURL)
+
     val splitPoint = subscribeURL.indexOf(".com") + 4
     val host = subscribeURL.substring(0, splitPoint)
     val path = subscribeURL.substring(splitPoint, subscribeURL.length)
 
-    val conn = Http().outgoingConnection(host)
-    val request = HttpRequest(GET, uri = path)
-    Source.single(request).via(conn).runWith(Sink.head[HttpResponse])
+    logger.info("host: " + host, ", path: " + path)
+
+    HttpUtil.request(
+      system,
+      HttpMethods.GET,
+      true,
+      host,
+      path
+    )
+
   }
+
 
   val routes = {
     headerValueByName(authHeaderName) { auth =>
@@ -84,7 +97,7 @@ trait Service {
                       val validatedMessage = validateAndDecryptMessage(message).get
                       val newPrice = BigDecimal(validatedMessage)
                       complete(
-                      perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
+                        perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
                       )
                     }
                     catch {
