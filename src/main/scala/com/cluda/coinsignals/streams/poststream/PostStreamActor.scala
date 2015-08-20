@@ -84,9 +84,17 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
         self ! PoisonPill
       }
 
+    case ChangeSubscriptionPrice(streamID: String, newPrice: BigDecimal) =>
+      val s = sender()
+
+      DatabaseUtil.updateSubscriptionPrice(dynamoDB, streamsTable, streamID, newPrice)
+      s ! Sec.secureHttpResponse(StatusCodes.Accepted)
+      self ! PoisonPill
   }
 }
 
 object PostStreamActor {
   def props(tableName: String): Props = Props(new PostStreamActor(tableName))
 }
+
+case class ChangeSubscriptionPrice(streamID: String, newPrice: BigDecimal)

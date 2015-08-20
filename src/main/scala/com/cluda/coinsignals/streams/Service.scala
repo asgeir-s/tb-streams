@@ -17,7 +17,7 @@ import akka.util.Timeout
 import com.cluda.coinsignals.streams.getstream.GetStreamsActor
 import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
-import com.cluda.coinsignals.streams.poststream.PostStreamActor
+import com.cluda.coinsignals.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
 import com.cluda.coinsignals.streams.protocoll.{NewStream, NewStreamJsonProtocol}
 import com.typesafe.config.Config
 
@@ -76,7 +76,24 @@ trait Service {
                   perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
                 }
               }
-            }
+            } ~
+              pathPrefix("subscription-price") {
+                post {
+                  entity(as[String]) { message =>
+                    try {
+                      val newPrice = BigDecimal(message)
+                      complete(
+                      perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
+                      )
+                    }
+                    catch {
+                      case e: Throwable =>
+                        logger.warning("The price could not be converted to BigDecimal")
+                        complete(secureHttpResponse(BadRequest, entity = "BadRequest"))
+                    }
+                  }
+                }
+              }
           } ~
             post {
               import NewStreamJsonProtocol._
@@ -134,7 +151,7 @@ trait Service {
                       val removeFirstAndLAst = decoded.substring(1, decoded.length - 1)
                       val validatedOpt = Sec.validateAndDecryptMessage(removeFirstAndLAst)
 
-                      if(validatedOpt.isDefined) {
+                      if (validatedOpt.isDefined) {
                         val json = validatedOpt.get.parseJson
                         complete {
                           perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])

@@ -24,6 +24,11 @@ object DatabaseUtil {
     println("REMOVED stream with id: " + streamID)
   }
 
+  def updateSubscriptionPrice(implicit dynamoDB: DynamoDB, table: Table, streamID: String, newSubscriptionPrice: BigDecimal): Unit = {
+    table.putAttributes(streamID, Seq(("subscriptionPriceUSD", newSubscriptionPrice)))
+  }
+
+
   /**
    * Blocking!
    *

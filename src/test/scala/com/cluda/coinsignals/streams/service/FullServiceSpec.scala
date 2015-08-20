@@ -246,7 +246,7 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "respondse with NoCOntent when trying to retreive a stream that does not exist" in {
+  it should "respondse with NoContent when trying to retreive a stream that does not exist" in {
     Get("/streams/fackestream?private=true").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe NotFound
     }
@@ -311,8 +311,34 @@ class FullServiceSpec extends TestService {
   it should "be possible to get all streams" in {
     Get("/streams").addHeader(Sec.headerToken) ~> routes ~> check {
       status shouldBe OK
-      val respons = responseAs[String]
+      val responsRaw = responseAs[String]
+      val respons = Sec.validateAndDecryptMessage(responsRaw).get
       respons.contains("coinbase-account-id")
+    }
+  }
+
+  it should "be possible to change the subscription price" in {
+    Post("/streams/coinbase-account-id/subscription-price", "4.66").addHeader(Sec.headerToken) ~> routes ~> check {
+      status shouldBe Accepted
+    }
+
+    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
+      status shouldBe OK
+      val responsRaw = responseAs[String]
+      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      assert(respons.contains("4.66"))
+    }
+
+    Post("/streams/coinbase-account-id/subscription-price", "40.33").addHeader(Sec.headerToken) ~> routes ~> check {
+      status shouldBe Accepted
+    }
+
+    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
+      status shouldBe OK
+      val responsRaw = responseAs[String]
+      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      assert(!respons.contains("4.66"))
+      assert(respons.contains("40.33"))
     }
   }
 
