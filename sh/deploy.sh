@@ -2,13 +2,15 @@
 
 SHA1=$1
 
+unset AWS_ACCESS_KEY_ID
+unset AWS_SECRET_KEY
+
 cd docker
 # Create new Elastic Beanstalk version
 EB_BUCKET=coinsignals
 FOLDER=streams-app
 SERVICE_NAME=streams
 APPLICATION_NAME=coinsignals
-AWS_DEFAULT_REGION=us-west-2
 
 zip $CIRCLE_ARTIFACTS/$SERVICE_NAME Dockerfile Dockerrun.aws.json $SERVICE_NAME.jar
 

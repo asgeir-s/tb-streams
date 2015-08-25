@@ -5,6 +5,8 @@ machine:
     version: 2.7.3
   services:
     - docker
+  environment:
+      AWS_DEFAULT_REGION: us-west-2
 
 dependencies:
   pre:
@@ -35,4 +37,4 @@ deployment:
   elasticbeanstalk:
     branch: master
     commands:
-      - env -i ./sh/deploy.sh $CIRCLE_SHA1
+      - ./sh/deploy.sh $CIRCLE_SHA1
