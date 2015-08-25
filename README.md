@@ -25,6 +25,22 @@ Microservice used in the coinsignals project.
     
     GET: /streams returns stream info for all streams
    	
+   	
+## Environment Variables
+	STREAMS_SERVICE_ADDRESS (default 'none')
+	AWS_ACCESS_KEY_ID (default 'none')
+	AWS_SECRET_KEY (default 'none')
+	DYNAMO_STREAMS_TABLE_NAME (default 'none')
+	DYNAMO_STREAMS_TABLE_REGION (default 'none')
+	SIGNALS_SERVICE_ADDRESS (default 'none')
+	LOG_LEVEL (default 'DEBUG')
+	
+	optional(initialized for testing and automatically provided by AWS):
+	RDS_HOSTNAME
+	RDS_PORT
+	RDS_DB_NAME
+	RDS_USERNAME
+	RDS_PASSWORD
 
 ## OSX Set Up
 ##### Docker

@@ -1,5 +1,7 @@
 package com.cluda.coinsignals.streams
 
+import java.util.UUID
+
 import akka.actor.{ActorSystem, Props}
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
@@ -43,6 +45,9 @@ trait Service {
 
   val authHeaderName = "x-groza-thow"
 
+  val runID = UUID.randomUUID()
+
+
   /**
    * Start a actor and pass it the decodedHttpRequest.
    * Returns a future. If anything fails it returns HttpResponse with "BadRequest",
@@ -79,6 +84,11 @@ trait Service {
 
 
   val routes = {
+    pathPrefix("ping") {
+      complete {
+        HttpResponse(OK, entity = "runID: " + runID)
+      }
+    } ~
     headerValueByName(authHeaderName) { auth =>
       if (autenticated(auth)) {
         pathPrefix("streams") {

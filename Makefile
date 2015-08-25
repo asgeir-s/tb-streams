@@ -14,12 +14,12 @@ build:
 	sbt assembly
 	docker build -t coinsignals/streams docker/
 
-deploy-s:
-	cd docker; eb use streams-staging; eb deploy;
+deploy-s: build
+	cd docker; eb deploy cs-streams-staging -r us-west-2;
 
 test-s-s:
 
-deploy-p:
-	cd docker; eb use streams; eb deploy;
+deploy-p: build
+	cd docker; eb deploy cs-streams -r us-east-1;
 
 setup-db:
