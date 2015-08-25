@@ -8,6 +8,7 @@ EB_BUCKET=coinsignals
 FOLDER=streams-app
 SERVICE_NAME=streams
 APPLICATION_NAME=coinsignals
+AWS_DEFAULT_REGION=us-west-2
 
 zip $CIRCLE_ARTIFACTS/$SERVICE_NAME Dockerfile Dockerrun.aws.json $SERVICE_NAME.jar
 
