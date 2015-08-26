@@ -28,6 +28,7 @@ Microservice used in the coinsignals project.
    	
 ## Environment Variables
 	STREAMS_SERVICE_ADDRESS (default 'none')
+	SIGNALS_SERVICE_PORT (default '80')
 	AWS_ACCESS_KEY_ID (default 'none')
 	AWS_SECRET_KEY (default 'none')
 	DYNAMO_STREAMS_TABLE_NAME (default 'none')

@@ -20,7 +20,8 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
   implicit val ec = context.system.dispatcher
 
   val config = ConfigFactory.load()
-  val host = config.getString("microservices.signals")
+  val signalsHost = config.getString("microservices.signals")
+  val signalsPort = config.getInt("microservices.signalsPort")
 
   def getSignalsFromId(id: Long): Future[Seq[Signal]] = {
     val promise = Promise[Seq[Signal]]()
@@ -29,7 +30,7 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
     import com.cluda.coinsignals.streams.model.SignalJsonProtocol._
     import com.cluda.coinsignals.protocol.Sec._
 
-    val conn = Http().outgoingConnection(host)
+    val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
     val path = "/streams/" + streamID + "/signals?fromId=" + id
     val request = secureHttpRequest(GET, uri = path)
     log.info("MissingSignalsActor for stream " + streamID + " sends request: " + request.toString)
