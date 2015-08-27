@@ -1,13 +1,8 @@
 package com.cluda.coinsignals.streams.service
 
-import akka.http.impl.util.JavaMapping.HttpHeader
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.RawHeader
-import awscala._
-import awscala.dynamodbv2.DynamoDB
 import com.amazonaws.regions.Region
-import com.amazonaws.services.sns.model.DeleteTopicRequest
-import com.cluda.coinsignals.protocol.Sec
 import com.typesafe.config.ConfigFactory
 
 class FullServiceSpec extends TestService {
@@ -16,18 +11,15 @@ class FullServiceSpec extends TestService {
 
   it should "responds accept the new stream and return the id" in {
     Post("/streams",
-      Sec.secureMessage(
       """{
         |"id": "coinbase-account-id",
         |"exchange": "bitstamp",
         |"currencyPair": "btcUSD",
         |"payoutAddress": "publishers-bitcoin-address",
         |"subscriptionPriceUSD": 5
-        |}""".stripMargin)
-    ).addHeader(Sec.headerToken) ~> routes ~> check {
+        |}""".stripMargin) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
-      println(respons)
+      val respons = responseAs[String]
       assert(respons.contains("id"))
       assert(respons.contains("apiKey"))
     }
@@ -47,7 +39,7 @@ class FullServiceSpec extends TestService {
           |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -72,7 +64,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -105,7 +97,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -141,7 +133,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe NotAcceptable
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
       assert(respons.contains("invalid sequence of signals"))
     }
     // Correct
@@ -172,7 +164,7 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Accepted
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
     }
   }
@@ -219,16 +211,15 @@ class FullServiceSpec extends TestService {
         |}]""".stripMargin)
     ).addHeader(RawHeader("x-amz-sns-message-type","Notification")) ~> routes ~> check {
       status shouldBe Conflict
-      val respons = Sec.validateAndDecryptMessage(responseAs[String]).get
+      val respons = responseAs[String]
     }
   }
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/coinbase-account-id") ~> routes ~> check {
       status shouldBe OK
-      val responsRaw = responseAs[String]
-      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
       assert(!respons.contains("topicArn"))
       assert(!respons.contains("apiKey"))
@@ -236,10 +227,9 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get("/streams/coinbase-account-id?private=true").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/coinbase-account-id?private=true") ~> routes ~> check {
       status shouldBe OK
-      val responsRaw = responseAs[String]
-      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      val respons = responseAs[String]
       assert(respons.contains("coinbase-account-id"))
       assert(respons.contains("topicArn"))
       assert(respons.contains("apiKey"))
@@ -247,11 +237,11 @@ class FullServiceSpec extends TestService {
   }
 
   it should "respondse with NoContent when trying to retreive a stream that does not exist" in {
-    Get("/streams/fackestream?private=true").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/fackestream?private=true") ~> routes ~> check {
       status shouldBe NotFound
     }
 
-    Get("/streams/fackestream").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/fackestream") ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -309,34 +299,31 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to get all streams" in {
-    Get("/streams").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams") ~> routes ~> check {
       status shouldBe OK
-      val responsRaw = responseAs[String]
-      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      val respons = responseAs[String]
       respons.contains("coinbase-account-id")
     }
   }
 
   it should "be possible to change the subscription price" in {
-    Post("/streams/coinbase-account-id/subscription-price", Sec.secureMessage("4.66")).addHeader(Sec.headerToken) ~> routes ~> check {
+    Post("/streams/coinbase-account-id/subscription-price", "4.66") ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/coinbase-account-id") ~> routes ~> check {
       status shouldBe OK
-      val responsRaw = responseAs[String]
-      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      val respons = responseAs[String]
       assert(respons.contains("4.66"))
     }
 
-    Post("/streams/coinbase-account-id/subscription-price", Sec.secureMessage("40.33")).addHeader(Sec.headerToken) ~> routes ~> check {
+    Post("/streams/coinbase-account-id/subscription-price", "40.33") ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get("/streams/coinbase-account-id").addHeader(Sec.headerToken) ~> routes ~> check {
+    Get("/streams/coinbase-account-id") ~> routes ~> check {
       status shouldBe OK
-      val responsRaw = responseAs[String]
-      val respons = Sec.validateAndDecryptMessage(responsRaw).get
+      val respons = responseAs[String]
       assert(!respons.contains("4.66"))
       assert(respons.contains("40.33"))
     }
@@ -363,8 +350,7 @@ class FullServiceSpec extends TestService {
       "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
       "TopicArn" : "arn:aws:sns:us-west-2:123456789012:MyTopic",
       "Subject" : "My First Message",
-      "Message" : """" +
-        Sec.secureMessage(signals) + """",
+      "Message" : """" + signals + """",
       "Timestamp" : "2012-05-02T00:54:06.655Z",
       "SignatureVersion" : "1",
       "Signature" : "EXAMPLEw6JRNwm1LFQL4ICB0bnXrdB8ClRMTQFGBqwLpGbM78tJ4etTwC5zU7O3tS6tGpey3ejedNdOJ+1fkIp9F2/LmNVKb5aFlYq+9rk9ZiPph5YlLmWsDcyC5T+Sy9/umic5S0UQc2PEtgdpVBahwNOdMW4JPwk0kAJJztnc=",

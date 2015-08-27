@@ -3,9 +3,6 @@ package com.cluda.coinsignals.streams.messaging.postsignal
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
 import akka.testkit.{TestActorRef, TestProbe}
-import awscala._
-import awscala.dynamodbv2.DynamoDB
-import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.messaging.MessagingTest
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.protocoll.StreamDoesNotExistException

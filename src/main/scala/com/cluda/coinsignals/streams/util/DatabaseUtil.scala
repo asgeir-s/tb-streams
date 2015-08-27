@@ -1,10 +1,8 @@
 package com.cluda.coinsignals.streams.util
 
-import java.util.UUID
-
 import awscala.dynamodbv2._
 import com.amazonaws.regions.Region
-import com.cluda.coinsignals.streams.model.{StreamPrivate, ComputeComponents, SStream, StreamStats}
+import com.cluda.coinsignals.streams.model.{ComputeComponents, SStream, StreamPrivate, StreamStats}
 import com.cluda.coinsignals.streams.protocoll.NewStream
 import com.typesafe.config.Config
 

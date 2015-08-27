@@ -1,9 +1,7 @@
 package com.cluda.coinsignals.streams.postsignal
 
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
-import awscala._
-import awscala.dynamodbv2.{DynamoDB, Table}
-import com.amazonaws.regions.Region
+import awscala.dynamodbv2.Table
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, StreamDoesNotExistException, UnexpectedSignalException}
 import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}

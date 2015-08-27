@@ -5,11 +5,9 @@ import java.util.UUID
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import awscala.dynamodbv2._
-import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
 import com.amazonaws.services.sns.AmazonSNSClient
-import com.cluda.coinsignals.protocol.Sec
 import com.cluda.coinsignals.streams.protocoll.NewStream
 import com.cluda.coinsignals.streams.util.{AwsSnsUtil, DatabaseUtil}
 import com.typesafe.config.ConfigFactory
@@ -80,7 +78,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
         subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
         val apiKey = UUID.randomUUID().toString // TODO: wraped in JWT and including id
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
-        s ! Sec.secureHttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
+        s ! HttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
         self ! PoisonPill
       }
 
@@ -88,7 +86,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       val s = sender()
 
       DatabaseUtil.updateSubscriptionPrice(dynamoDB, streamsTable, streamID, newPrice)
-      s ! Sec.secureHttpResponse(StatusCodes.Accepted)
+      s ! HttpResponse(StatusCodes.Accepted)
       self ! PoisonPill
   }
 }

@@ -1,9 +1,5 @@
 package com.cluda.coinsignals.streams.unit
 
-import awscala._
-import awscala.dynamodbv2.DynamoDB
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.cluda.coinsignals.streams.{DatabaseTestUtil, TestData}
 import com.typesafe.config.ConfigFactory

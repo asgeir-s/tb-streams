@@ -2,10 +2,8 @@ package com.cluda.coinsignals.streams.postsignal
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import com.cluda.coinsignals.protocol.Sec
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, StreamDoesNotExistException, UnexpectedSignalException}
-import com.cluda.coinsignals.protocol.Sec._
 
 class PostSignalActor(streamID: String, tableName: String) extends Actor with ActorLogging {
   override def receive: Receive = {
@@ -16,17 +14,17 @@ class PostSignalActor(streamID: String, tableName: String) extends Actor with Ac
 
   def responder(respondTo: ActorRef): Receive = {
     case stream: SStream =>
-      respondTo ! secureHttpResponse(StatusCodes.Accepted, entity = stream.publicJson)
+      respondTo ! HttpResponse(StatusCodes.Accepted, entity = stream.publicJson)
 
     case e: StreamDoesNotExistException =>
-      respondTo ! secureHttpResponse(StatusCodes.NoContent)
+      respondTo ! HttpResponse(StatusCodes.NoContent)
 
     case e: FatalStreamCorruptedException =>
-      respondTo ! secureHttpResponse(StatusCodes.NotAcceptable,
+      respondTo ! HttpResponse(StatusCodes.NotAcceptable,
         entity = """{ "error": """" + e.info  + """", "streamId": """" + e.streamId + """" }""")
 
     case e: UnexpectedSignalException =>
-      respondTo ! secureHttpResponse(StatusCodes.Conflict, entity = """{ "error": """" + e.info + """ }""")
+      respondTo ! HttpResponse(StatusCodes.Conflict, entity = """{ "error": """" + e.info + """ }""")
   }
 }
 

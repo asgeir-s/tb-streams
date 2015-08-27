@@ -19,8 +19,8 @@ case class SStream(
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
   def publicJson: String = {
-    import StreamStatsProtocol._
     import spray.json._
+    import StreamStatsProtocol._
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +

@@ -4,29 +4,21 @@ import java.util.UUID
 
 import akka.actor.{ActorSystem, Props}
 import akka.event.LoggingAdapter
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
-import akka.http.scaladsl.server.RouteResult.Rejected
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import com.cluda.coinsignals.protocol.Sec
-import com.cluda.coinsignals.protocol.Sec._
+import akka.http.scaladsl.model.{HttpMethods, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Sink, Source}
 import akka.util.Timeout
 import com.cluda.coinsignals.streams.getstream.GetStreamsActor
-import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
+import com.cluda.coinsignals.streams.model.{SignalJsonProtocol, Signal}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
-import com.cluda.coinsignals.streams.protocoll.{NewStream, NewStreamJsonProtocol}
+import com.cluda.coinsignals.streams.protocoll.{NewStreamJsonProtocol, NewStream}
 import com.cluda.coinsignals.streams.util.HttpUtil
 import com.typesafe.config.Config
 
-
-import scala.concurrent.{Promise, ExecutionContextExecutor, Future}
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 trait Service {
   implicit val system: ActorSystem
@@ -43,8 +35,6 @@ trait Service {
 
   val streamsTableName: String
 
-  val authHeaderName = "x-groza-thow"
-
   val runID = UUID.randomUUID()
 
 
@@ -58,7 +48,7 @@ trait Service {
    */
   def perRequestActor[T](props: Props, message: T): Future[HttpResponse] = {
     (system.actorOf(props) ? message)
-      .recover { case _ => secureHttpResponse(BadRequest, entity = "BadRequest") }
+      .recover { case _ => HttpResponse(BadRequest, entity = "BadRequest") }
       .asInstanceOf[Future[HttpResponse]]
   }
 
@@ -84,13 +74,15 @@ trait Service {
 
 
   val routes = {
+
+    import spray.json._
+    import DefaultJsonProtocol._
+
     pathPrefix("ping") {
       complete {
         HttpResponse(OK, entity = "runID: " + runID)
       }
     } ~
-    headerValueByName(authHeaderName) { auth =>
-      if (autenticated(auth)) {
         pathPrefix("streams") {
           pathPrefix(Segment) { streamID =>
             get {
@@ -102,40 +94,22 @@ trait Service {
             } ~
               pathPrefix("subscription-price") {
                 post {
-                  entity(as[String]) { message =>
-                    try {
-                      val validatedMessage = validateAndDecryptMessage(message).get
-                      val newPrice = BigDecimal(validatedMessage)
+                  entity(as[String]) { newPriceString =>
+                      val newPrice = BigDecimal(newPriceString)
                       complete(
                         perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
                       )
-                    }
-                    catch {
-                      case e: Throwable =>
-                        logger.warning("The price could not be converted to BigDecimal")
-                        complete(secureHttpResponse(BadRequest, entity = "BadRequest"))
-                    }
                   }
                 }
               }
           } ~
             post {
-              import NewStreamJsonProtocol._
-              import spray.json._
-              entity(as[String]) { message =>
-                val streamStringOpt = validateAndDecryptMessage(message)
-
-                if (streamStringOpt.isDefined) {
-                  val streamString = streamStringOpt.get
-                  val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
+              entity(as[String]) { streamString =>
+                import NewStreamJsonProtocol._
+                val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
                   complete {
                     perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
                   }
-                }
-                else {
-                  logger.warning("Received unvalide (could not be validated and decrypted) /streams POST message. Message was: " + message)
-                  complete(secureHttpResponse(BadRequest, entity = "BadRequest"))
-                }
               }
             } ~
             get {
@@ -144,11 +118,6 @@ trait Service {
               }
             }
         }
-
-      }
-      else {
-        reject
-      }
     } ~
       headerValueByName("x-amz-sns-message-type") { awsMessageType =>
         pathPrefix("streams") {
@@ -168,39 +137,27 @@ trait Service {
                     )
                   }
                   else {
-                    import SignalJsonProtocol._
                     if (awsMessageType == "Notification") {
                       val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
                       val decoded = message.replace( """\n""", " ").replace( """\""", "")
-                      val removeFirstAndLAst = decoded.substring(1, decoded.length - 1)
-                      val validatedOpt = Sec.validateAndDecryptMessage(removeFirstAndLAst)
-
-                      if (validatedOpt.isDefined) {
-                        val json = validatedOpt.get.parseJson
+                      val json = decoded.substring(1, decoded.length - 1).parseJson
                         complete {
+                          import SignalJsonProtocol._
                           perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
                         }
-                      }
-                      else {
-                        logger.warning("Received unvalide (could not be validated and decrypted) /streams/" + streamID + "/signals  POST message with header x-amz-sns-message-type: Notification. Message was: " + message)
-                        complete {
-                          Sec.secureHttpResponse(BadRequest)
-                        }
-                      }
 
                     }
                     else {
                       reject
                     }
                   }
-
                 }
               }
             }
           }
         }
 
-      }
+
   }
 
 
