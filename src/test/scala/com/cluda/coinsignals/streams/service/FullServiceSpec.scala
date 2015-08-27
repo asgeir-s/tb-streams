@@ -350,7 +350,7 @@ class FullServiceSpec extends TestService {
       "MessageId" : "22b80b92-fdea-4c2c-8f9d-bdfb0c7bf324",
       "TopicArn" : "arn:aws:sns:us-west-2:123456789012:MyTopic",
       "Subject" : "My First Message",
-      "Message" : """" + signals + """",
+      "Message" : """ + signals + """,
       "Timestamp" : "2012-05-02T00:54:06.655Z",
       "SignatureVersion" : "1",
       "Signature" : "EXAMPLEw6JRNwm1LFQL4ICB0bnXrdB8ClRMTQFGBqwLpGbM78tJ4etTwC5zU7O3tS6tGpey3ejedNdOJ+1fkIp9F2/LmNVKb5aFlYq+9rk9ZiPph5YlLmWsDcyC5T+Sy9/umic5S0UQc2PEtgdpVBahwNOdMW4JPwk0kAJJztnc=",

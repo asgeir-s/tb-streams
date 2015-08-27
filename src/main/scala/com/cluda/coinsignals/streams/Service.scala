@@ -83,42 +83,6 @@ trait Service {
         HttpResponse(OK, entity = "runID: " + runID)
       }
     } ~
-        pathPrefix("streams") {
-          pathPrefix(Segment) { streamID =>
-            get {
-              parameters('private.as[Boolean].?) { privateInfo =>
-                complete {
-                  perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
-                }
-              }
-            } ~
-              pathPrefix("subscription-price") {
-                post {
-                  entity(as[String]) { newPriceString =>
-                      val newPrice = BigDecimal(newPriceString)
-                      complete(
-                        perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
-                      )
-                  }
-                }
-              }
-          } ~
-            post {
-              entity(as[String]) { streamString =>
-                import NewStreamJsonProtocol._
-                val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
-                  complete {
-                    perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
-                  }
-              }
-            } ~
-            get {
-              complete {
-                perRequestActor[String](GetStreamsActor.props(streamsTableName), "all")
-              }
-            }
-        }
-    } ~
       headerValueByName("x-amz-sns-message-type") { awsMessageType =>
         pathPrefix("streams") {
           pathPrefix(Segment) { streamID =>
@@ -133,18 +97,17 @@ trait Service {
                       .replace("http://", "")
                       .trim
                     complete(
-                      confirmAwsSnsSubscription(confirmUrl.substring(1, confirmUrl.length-1))
+                      confirmAwsSnsSubscription(confirmUrl.substring(1, confirmUrl.length - 1))
                     )
                   }
                   else {
                     if (awsMessageType == "Notification") {
                       val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
-                      val decoded = message.replace( """\n""", " ").replace( """\""", "")
-                      val json = decoded.substring(1, decoded.length - 1).parseJson
-                        complete {
-                          import SignalJsonProtocol._
-                          perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
-                        }
+                      val json = message.replace( """\n""", " ").replace( """\""", "").parseJson
+                      complete {
+                        import SignalJsonProtocol._
+                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
+                      }
 
                     }
                     else {
@@ -158,6 +121,42 @@ trait Service {
         }
 
 
+      } ~
+      pathPrefix("streams") {
+        pathPrefix(Segment) { streamID =>
+          get {
+            parameters('private.as[Boolean].?) { privateInfo =>
+              complete {
+                perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
+              }
+            }
+          } ~
+            pathPrefix("subscription-price") {
+              post {
+                entity(as[String]) { newPriceString =>
+                  val newPrice = BigDecimal(newPriceString)
+                  complete(
+                    perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
+                  )
+                }
+              }
+            }
+        } ~
+          post {
+            entity(as[String]) { streamString =>
+              import NewStreamJsonProtocol._
+              val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
+              complete {
+                perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
+              }
+            }
+          } ~
+          get {
+            complete {
+              perRequestActor[String](GetStreamsActor.props(streamsTableName), "all")
+            }
+          }
+      }
   }
 
 
