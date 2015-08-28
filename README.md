@@ -27,6 +27,7 @@ Microservice used in the coinsignals project.
    	
    	
 ## Environment Variables
+	SNS_SUBSCRIBERS (default '[]') (should be comma separated)
 	STREAMS_SERVICE_ADDRESS (default 'none')
 	SIGNALS_SERVICE_PORT (default '80')
 	AWS_ACCESS_KEY_ID (default 'none')

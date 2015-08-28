@@ -23,7 +23,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   import collection.JavaConversions._
 
-  val topicSubscribersRaw: List[String] = config.getStringList("awsTopicSubscribers").toList
+  val topicSubscribersRaw: List[String] = config.getStringList("snsSubscribers").toList
 
   private val streamsTable: awscala.dynamodbv2.Table = {
     if (dynamoDB.table(tableName).isEmpty) {
@@ -76,7 +76,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
         log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
         subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
-        val apiKey = UUID.randomUUID().toString // TODO: wraped in JWT and including id
+        val apiKey = UUID.randomUUID().toString
         DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
         s ! HttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
         self ! PoisonPill
