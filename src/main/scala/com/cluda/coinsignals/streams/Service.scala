@@ -11,10 +11,10 @@ import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
 import com.cluda.coinsignals.streams.getstream.GetStreamsActor
-import com.cluda.coinsignals.streams.model.{SignalJsonProtocol, Signal}
+import com.cluda.coinsignals.streams.model.{Signal, SignalJsonProtocol}
 import com.cluda.coinsignals.streams.postsignal.PostSignalActor
 import com.cluda.coinsignals.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
-import com.cluda.coinsignals.streams.protocoll.{NewStreamJsonProtocol, NewStream}
+import com.cluda.coinsignals.streams.protocoll.{NewStream, NewStreamJsonProtocol}
 import com.cluda.coinsignals.streams.util.HttpUtil
 import com.typesafe.config.Config
 
@@ -76,52 +76,12 @@ trait Service {
   val routes = {
 
     import spray.json._
-    import DefaultJsonProtocol._
 
     pathPrefix("ping") {
       complete {
         HttpResponse(OK, entity = "runID: " + runID)
       }
     } ~
-      headerValueByName("x-amz-sns-message-type") { awsMessageType =>
-        pathPrefix("streams") {
-          pathPrefix(Segment) { streamID =>
-            pathPrefix("signals") {
-              post {
-                entity(as[String]) { bodyString =>
-                  import spray.json._
-                  // if header: 'x-amz-sns-message-type: SubscriptionConfirmation'
-                  if (awsMessageType == "SubscriptionConfirmation") {
-                    val confirmUrl = bodyString.parseJson.asJsObject.getFields("SubscribeURL").head.toString()
-                      .replace("https://", "")
-                      .replace("http://", "")
-                      .trim
-                    complete(
-                      confirmAwsSnsSubscription(confirmUrl.substring(1, confirmUrl.length - 1))
-                    )
-                  }
-                  else {
-                    if (awsMessageType == "Notification") {
-                      val message = bodyString.parseJson.asJsObject.getFields("Message").head.toString()
-                      val json = message.replace( """\n""", " ").replace( """\""", "").parseJson
-                      complete {
-                        import SignalJsonProtocol._
-                        perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
-                      }
-
-                    }
-                    else {
-                      reject
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-
-
-      } ~
       pathPrefix("streams") {
         pathPrefix(Segment) { streamID =>
           get {
@@ -138,6 +98,18 @@ trait Service {
                   complete(
                     perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
                   )
+                }
+              }
+            } ~
+            pathPrefix("signals") {
+              post {
+                entity(as[String]) { bodyString =>
+                  import spray.json._
+                  val json = bodyString.parseJson
+                  complete {
+                    import SignalJsonProtocol._
+                    perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
+                  }
                 }
               }
             }
