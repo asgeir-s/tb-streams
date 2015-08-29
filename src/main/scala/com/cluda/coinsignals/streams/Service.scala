@@ -104,6 +104,7 @@ trait Service {
             pathPrefix("signals") {
               post {
                 entity(as[String]) { bodyString =>
+                  println("THE POSTED SIGNALS: " + bodyString)
                   import spray.json._
                   val json = bodyString.parseJson
                   complete {
