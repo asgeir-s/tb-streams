@@ -15,7 +15,7 @@ object DatabaseTestUtil {
   }
 
   def createAndWaitForTable(implicit dynamoDB: DynamoDB, tableName: String): Table = {
-    println("creats test table with name: " + tableName + " and waits for it to be available.")
+    println("DatabaseTestUtil: creats test table with name: " + tableName + " and waits for it to be available.")
     dynamoDB.createTable(
       name = tableName,
       hashPK = "id" -> AttributeType.String
@@ -37,7 +37,7 @@ object DatabaseTestUtil {
       }
 
     }
-    println("table with name: " + tableName + " is ready.")
+    println("DatabaseTestUtil: table with name: " + tableName + " is ready.")
     dynamoDB.table(tableName).get
   }
 }

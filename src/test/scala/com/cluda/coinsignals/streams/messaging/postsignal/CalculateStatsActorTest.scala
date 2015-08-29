@@ -34,8 +34,8 @@ class CalculateStatsActorTest extends MessagingTest {
     val asker = TestProbe()
     asker.send(actor, Seq(TestData.signalSeqMath(5)))
     val responds = asker.expectMsgType[SStream]
-    println(responds)
-    println(TestData.mathStream2actor)
+    //println(responds)
+    //println(TestData.mathStream2actor)
     assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream2actor))
   }
 

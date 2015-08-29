@@ -27,7 +27,6 @@ case class SStream(
     """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """" + subscriptionPriceUSD + """",""" +
       """ "stats": """ + stats.toJson.compactPrint + """}"""
-    println(json)
     json
   }
 
@@ -41,7 +40,6 @@ case class SStream(
       """ "status": """" + status + """",""" +
       """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
-    println(json)
     json
   }
 }

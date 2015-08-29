@@ -6,5 +6,5 @@ global:
   default_ec2_keyname: null
   default_platform: 64bit Amazon Linux 2015.03 v2.0.0 running Docker 1.6.2
   default_region: null
-  profile: null
+  profile: eb-cli
   sc: null

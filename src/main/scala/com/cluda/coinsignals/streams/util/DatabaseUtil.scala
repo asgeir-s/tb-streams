@@ -19,7 +19,7 @@ object DatabaseUtil {
 
   def removeStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Unit = {
     table.deleteItem(streamID)
-    println("REMOVED stream with id: " + streamID)
+    println("DatabaseUtil: REMOVED stream with id: " + streamID)
   }
 
   def updateSubscriptionPrice(implicit dynamoDB: DynamoDB, table: Table, streamID: String, newSubscriptionPrice: BigDecimal): Unit = {
