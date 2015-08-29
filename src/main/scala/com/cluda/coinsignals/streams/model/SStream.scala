@@ -23,7 +23,8 @@ case class SStream(
     import StreamStatsProtocol._
     val json = """{ "id": """" + id + """",""" +
       """ "exchange": """" + exchange + """",""" +
-      """ "currencyPair": """" + currencyPair + """",""" +
+      """ "idOfLastSignal": """" + idOfLastSignal + """",""" +
+    """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """" + subscriptionPriceUSD + """",""" +
       """ "stats": """ + stats.toJson.compactPrint + """}"""
     println(json)
