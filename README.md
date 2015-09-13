@@ -43,6 +43,15 @@ Microservice used in the coinsignals project.
 	RDS_DB_NAME
 	RDS_USERNAME
 	RDS_PASSWORD
+	
+### Test Parameters
+	LOG_LEVEL=DEBUG
+	AWS_SECRET_KEY=qjKCyXmcnlFnJhij3jIcMtcGNAKSFNYkTvHgGA5C
+	DYNAMO_STREAMS_TABLE_NAME=streams-test
+	AWS_ACCESS_KEY_ID=AKIAJNHQ6UIBTNXYYPFA
+	SIGNALS_SERVICE_PORT=80
+	SIGNALS_SERVICE_ADDRESS=cs-signals-staging.elasticbeanstalk.com
+	DYNAMO_STREAMS_TABLE_REGION=us-west-2
 
 ## OSX Set Up
 ##### Docker
