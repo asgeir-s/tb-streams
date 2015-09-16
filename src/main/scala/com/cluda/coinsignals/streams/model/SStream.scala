@@ -36,6 +36,7 @@ case class SStream(
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
+      """ "idOfLastSignal": """" + idOfLastSignal + """",""" +
       """ "status": """ + status + """,""" +
       """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
