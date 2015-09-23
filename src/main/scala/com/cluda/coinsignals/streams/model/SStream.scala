@@ -8,7 +8,7 @@ object StreamStatsProtocol extends DefaultJsonProtocol {
 }
 
 case class SStream(
-  id: String,
+  id: Option[String],
   exchange: String,
   currencyPair: String,
   status: Int,
@@ -19,9 +19,9 @@ case class SStream(
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
   def publicJson: String = {
-    import StreamStatsProtocol._
     import spray.json._
-    val json = """{ "id": """" + id + """",""" +
+    import StreamStatsProtocol._
+    val json = """{ "id": """" + id.get + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
@@ -32,20 +32,24 @@ case class SStream(
   def privateJson: String = {
     import StreamStatsProtocol._
     import spray.json._
-    val json = """{ "id": """" + id + """",""" +
+    val json = """{ "id": """" + id.get + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
-      """ "idOfLastSignal": """" + idOfLastSignal + """",""" +
+      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
       """ "status": """ + status + """,""" +
       """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
     json.parseJson.prettyPrint
   }
+
+  def sStreamWithId(id: String) = {
+    SStream(Some(id), exchange, currencyPair, status, idOfLastSignal, subscriptionPriceUSD, streamPrivate, stats, computeComponents)
+  }
 }
 
 case class StreamPrivate(
-  apiKey: String,
+  apiKeyId: String,
   topicArn: String,
   payoutAddress: String
   )

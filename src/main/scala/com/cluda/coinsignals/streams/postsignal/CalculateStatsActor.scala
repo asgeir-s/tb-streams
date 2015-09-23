@@ -7,37 +7,34 @@ import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, S
 import com.cluda.coinsignals.streams.util.{DatabaseUtil, StreamUtil}
 import com.typesafe.config.ConfigFactory
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 class CalculateStatsActor(streamID: String, tableName: String) extends Actor with ActorLogging {
 
   implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
-
+  implicit val ec = context.dispatcher
 
   if (dynamoDB.table(tableName).isEmpty) {
-    log.error("CalculateStatsActor("+ streamID + "): could not find streams-table (" + tableName + ")")
+    log.error("CalculateStatsActor(" + streamID + "): could not find streams-table (" + tableName + ")")
     context.parent ! StreamDoesNotExistException(
       "could not find streams-table (" + tableName + ")")
     self ! PoisonPill
   }
 
   private val streamsTable: Table = dynamoDB.table(tableName).get
-  val stream = DatabaseUtil.getStream(dynamoDB, streamsTable, streamID)
-
-  if (stream.isEmpty) {
-    log.error("CalculateStatsActor("+ streamID + "): could not find stream with id " + streamID + " in the streams-table")
-    context.parent ! StreamDoesNotExistException(
-      "could not find stream with id " + streamID + " in the streams-table")
-
-    self ! PoisonPill
-  }
+  val stream = Await.result(DatabaseUtil.getStream(streamsTable, streamID), 3 seconds)
 
   override def receive: Receive = {
     case signals: Seq[Signal] =>
+      val s = sender()
 
-      log.info("CalculateStatsActor("+ streamID + "): Received " + signals.length + " signal(s)")
+      log.info("CalculateStatsActor(" + streamID + "): Received " + signals.length + " signal(s)")
+      log.info("signal: " + signals.head.signal)
 
       //for safety
       if (stream.isEmpty) {
-        log.error("CalculateStatsActor("+ streamID + "): could not find stream with id " + streamID + " in the streams-table")
+        log.error("CalculateStatsActor(" + streamID + "): could not find stream with id " + streamID + " in the streams-table")
         context.parent ! StreamDoesNotExistException(
           "could not find stream with id " + streamID + " in the streams-table")
 
@@ -52,7 +49,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
         val newSignals = signals.filter(_.id > sStream.idOfLastSignal)
 
         if (newSignals.isEmpty) {
-          log.warning("CalculateStatsActor("+ streamID + "): only received signal(s) with ID(s) that has " +
+          log.warning("CalculateStatsActor(" + streamID + "): only received signal(s) with ID(s) that has " +
             "already been processed. Returns 'UnexpectedSignalException'.")
 
           sender() ! UnexpectedSignalException(
@@ -63,7 +60,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
         else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1) &&
           sStream.stats.numberOfSignals > 0) {
 
-          log.warning("CalculateStatsActor("+ streamID + "): received signal(s) with ID(s) that does " +
+          log.warning("CalculateStatsActor(" + streamID + "): received signal(s) with ID(s) that does " +
             "not include the expected next ID. The ID(s) are (all) higher then the " +
             "next expected next signal's id. Starts MissingSignalsActor to retrieve " +
             "the missing signals.")
@@ -78,7 +75,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
                 "try to add a signal that did no have the last id + 1")
             }
             else if (sStream.status == signal.signal) {
-              log.error("CalculateStatsActor("+ streamID + "): [FatalStreamCorruptedException] This " +
+              log.error("CalculateStatsActor(" + streamID + "): [FatalStreamCorruptedException] This " +
                 "signal has the same (position-)signal as the last signal. Signal id: " +
                 signal.id)
 
@@ -89,7 +86,7 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
             else if (sStream.status == 1 && signal.signal == -1 ||
               sStream.status == -1 && signal.signal == 1) {
 
-              log.error("CalculateStatsActor("+ streamID + "): [FatalStreamCorruptedException] invalid " +
+              log.error("CalculateStatsActor(" + streamID + "): [FatalStreamCorruptedException] invalid " +
                 "sequence of signals (going from LONG to SHORT or SHORT to LONG without " +
                 "closing first).")
 
@@ -100,16 +97,25 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
               self ! PoisonPill
             }
             else {
-              log.info("CalculateStatsActor("+ streamID + "): signal with id " + signal.id + " was accepted as new signal. Starting to update the stream stats.")
+              log.info("CalculateStatsActor(" + streamID + "): signal with id " + signal.id + " was accepted as new signal. Starting to update the stream stats.")
               sStream = StreamUtil.updateStreamWitheNewSignal(sStream, signal)
             }
           })
-          DatabaseUtil.putStream(dynamoDB, streamsTable, sStream)
-          sender() ! sStream
-          log.info("CalculateStatsActor("+ streamID + "): stream updated in database. New stream object: " +
-            sStream)
 
-          self ! PoisonPill
+
+          DatabaseUtil.updateStream(streamsTable, sStream).map { returnedStream =>
+            s ! returnedStream
+            log.info("CalculateStatsActor(" + returnedStream.id.get + "): stream updated in database. New stream object: " +
+              sStream)
+          }.recover {
+            case e: Throwable =>
+              log.error("CalculateStatsActor(" + sStream.id.get + "): failed. Error: " + e.toString)
+              s ! e
+          }.andThen {
+            case _ =>
+              self ! PoisonPill
+          }
+
         }
       }
   }

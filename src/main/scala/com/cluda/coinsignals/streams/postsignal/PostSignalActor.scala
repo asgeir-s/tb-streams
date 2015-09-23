@@ -25,6 +25,9 @@ class PostSignalActor(streamID: String, tableName: String) extends Actor with Ac
 
     case e: UnexpectedSignalException =>
       respondTo ! HttpResponse(StatusCodes.Conflict, entity = """{ "error": """" + e.info + """ }""")
+
+    case e: Throwable =>
+      respondTo ! HttpResponse(StatusCodes.InternalServerError)
   }
 }
 

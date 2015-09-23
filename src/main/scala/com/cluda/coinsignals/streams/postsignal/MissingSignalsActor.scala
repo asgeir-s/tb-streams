@@ -25,17 +25,21 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
   def getSignalsFromId(id: Long): Future[Seq[Signal]] = {
     val promise = Promise[Seq[Signal]]()
 
-    import spray.json._
     import com.cluda.coinsignals.streams.model.SignalJsonProtocol._
+    import spray.json._
 
     val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
     val path = "/streams/" + streamID + "/signals?fromId=" + id
     val request = HttpRequest(GET, uri = path)
-    log.info("MissingSignalsActor for stream " + streamID + " sends request: " + request.toString)
+    log.info("MissingSignalsActor: for stream " + streamID + " sends request: " + request.toString)
     Source.single(request).via(conn).runWith(Sink.head[HttpResponse]).map { x =>
       Unmarshal(x.entity).to[String].map { body =>
           promise.success(body.parseJson.convertTo[Seq[Signal]])
       }
+    }.recover{
+      case e: Throwable =>
+        log.error(s"MissingSignalsActor: Could not get signals from $signalsHost$path. Error: " + e.toString)
+        promise.failure(e)
     }
     promise.future
   }
@@ -45,11 +49,14 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
       val s = sender()
 
       getSignalsFromId(lastProcessedId).map { signals =>
-        log.info("MissingSignalsActor for stream " + streamID + " got back " + signals.length + " signals")
+        log.info("MissingSignalsActor: for stream " + streamID + " got back " + signals.length + " signals")
         s ! signals
-        self ! PoisonPill
+      }.recover{
+        case e: Throwable =>
+          s ! e
+      }.andThen{
+        case _ => self ! PoisonPill
       }
-
 
   }
 

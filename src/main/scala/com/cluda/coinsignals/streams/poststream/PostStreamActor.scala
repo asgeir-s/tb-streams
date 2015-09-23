@@ -8,6 +8,7 @@ import awscala.dynamodbv2._
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
 import com.amazonaws.services.sns.AmazonSNSClient
+import com.cluda.coinsignals.streams.model.{SStream, StreamPrivate}
 import com.cluda.coinsignals.streams.protocoll.NewStream
 import com.cluda.coinsignals.streams.util.{AwsSnsUtil, DatabaseUtil}
 import com.typesafe.config.ConfigFactory
@@ -68,24 +69,50 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
   override def receive: Receive = {
     case newStream: NewStream =>
       val s = sender()
-      val subscribers = topicSubscribersRaw.map(_.replace("'streamID'", newStream.id))
-      log.info("PostStreamActor: got new stream: " + newStream)
-      //Crete AWS SNS Topic
-      val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
-      snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
-      AwsSnsUtil.createTopic(snsClient, newStream.id).map { arn =>
-        log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
-        subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
-        val apiKey = UUID.randomUUID().toString
-        DatabaseUtil.putNewStream(dynamoDB, streamsTable, newStream, arn, apiKey)
-        s ! HttpResponse(StatusCodes.Accepted, entity = """{"id": """" + newStream.id + """", "apiKey": """" + apiKey + """" }""")
-        self ! PoisonPill
+
+      val newSStream = SStream(None, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD,
+        StreamPrivate(UUID.randomUUID().toString, "none", newStream.payoutAddress))
+
+      // add stream to the database and get id
+      DatabaseUtil.putStreamNew(streamsTable, newSStream).map {
+        case stream: SStream =>
+          val streamId = stream.id.get
+          val subscribers = topicSubscribersRaw.map(_.replace("'streamID'", streamId))
+
+          // create topic from id
+          val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
+          snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
+          AwsSnsUtil.createTopic(snsClient, streamId).map { arn =>
+            log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
+            subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
+            DatabaseUtil.addSnsTopicArn(streamsTable, streamId, arn).map { un =>
+              import spray.json._
+              import DefaultJsonProtocol._
+              s ! HttpResponse(StatusCodes.Accepted, entity = Map("id" -> streamId, "apiKeyId" -> newSStream.streamPrivate.apiKeyId).toJson.prettyPrint)
+            }.recover {
+              case e: Throwable =>
+                log.error("'DatabaseUtil.addSnsTopicArn()' failed. Error: " + e.toString)
+                s ! HttpResponse(StatusCodes.InternalServerError)
+            }.andThen{
+              case _ => self ! PoisonPill
+            }
+          }.recover {
+            case e: Throwable =>
+              log.error("'AwsSnsUtil.createTopic()' failed. Error: " + e.toString)
+              s ! HttpResponse(StatusCodes.InternalServerError)
+              self ! PoisonPill
+          }
+      }.recover {
+        case e: Throwable =>
+          log.error("'DatabaseUtil.putStreamNew()' failed. Error: " + e.toString)
+          s ! HttpResponse(StatusCodes.InternalServerError)
+          self ! PoisonPill
       }
 
     case ChangeSubscriptionPrice(streamID: String, newPrice: BigDecimal) =>
       val s = sender()
 
-      DatabaseUtil.updateSubscriptionPrice(dynamoDB, streamsTable, streamID, newPrice)
+      DatabaseUtil.updateSubscriptionPrice(streamsTable, streamID, newPrice)
       s ! HttpResponse(StatusCodes.Accepted)
       self ! PoisonPill
   }

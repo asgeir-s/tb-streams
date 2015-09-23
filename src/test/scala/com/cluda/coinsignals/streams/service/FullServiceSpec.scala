@@ -1,33 +1,37 @@
 package com.cluda.coinsignals.streams.service
 
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.headers.RawHeader
 import com.amazonaws.regions.Region
 import com.typesafe.config.ConfigFactory
 
 class FullServiceSpec extends TestService {
 
   override val streamsTableName: String = "postStreamSpec"
+  var streamId = ""
 
   it should "responds accept the new stream and return the id" in {
+    import spray.json._
+
     Post("/streams",
       """{
-        |"id": "coinbase-account-id",
-        |"exchange": "bitstamp",
-        |"currencyPair": "btcUSD",
-        |"payoutAddress": "publishers-bitcoin-address",
-        |"subscriptionPriceUSD": 5
+        | "exchange": "bitstamp",
+        | "currencyPair": "btcUSD",
+        | "payoutAddress": "publishers-bitcoin-address",
+        | "subscriptionPriceUSD": 5
         |}""".stripMargin) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
-      assert(respons.contains("apiKey"))
+      assert(respons.contains("apiKeyId"))
+      streamId = respons.parseJson.asJsObject.fields("id").toString()
+      streamId = streamId.substring(1, streamId.length-1)
     }
   }
 
 
+
   it should "responds with 'Accepted' and return the new stream object when a new signal is posted for an existing stream" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
         """[{
           |  "timestamp": 1432122282747,
           |  "price": 200.453,
@@ -39,12 +43,12 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when two new signals is posted for an existing stream" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 254.453,
@@ -64,12 +68,12 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when three signals is posted ina out of order sequence" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 264.453,
@@ -97,7 +101,7 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
     }
   }
 
@@ -105,7 +109,7 @@ class FullServiceSpec extends TestService {
     "signals are in a illegal order(correct id but no CLOSE between LONG and SHORT positions), also if new signals are " +
     "received later with the same id's but correct order thay should be acceted" in {
     // illegal
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 244.453,
@@ -136,7 +140,7 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("invalid sequence of signals"))
     }
     // Correct
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -164,12 +168,12 @@ class FullServiceSpec extends TestService {
     ) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
     }
   }
 
   it should "responds with 'NotAcceptable' when the id has te expected next id but the posting is the same as the last position" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -199,7 +203,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "responds with 'Conflict' when a signal that is the same as last signal is added. The responds body should include the stream object for the stream" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 284.453,
@@ -216,20 +220,20 @@ class FullServiceSpec extends TestService {
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get("/streams/coinbase-account-id") ~> routes ~> check {
+    Get(s"/streams/$streamId") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
       assert(!respons.contains("topicArn"))
       assert(!respons.contains("apiKey"))
     }
   }
 
   it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get("/streams/coinbase-account-id?private=true") ~> routes ~> check {
+    Get(s"/streams/$streamId?private=true") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains("coinbase-account-id"))
+      assert(respons.contains(streamId))
       assert(respons.contains("topicArn"))
       assert(respons.contains("apiKey"))
     }
@@ -247,7 +251,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "handle new signals incoming as AWS SNS messages" in {
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
 
         """[{
           |"timestamp":1433169808000,
@@ -261,7 +265,7 @@ class FullServiceSpec extends TestService {
       status shouldBe Accepted
     }
 
-    Post("/streams/coinbase-account-id/signals",
+    Post(s"/streams/$streamId/signals",
 
         """[{
           |"timestamp":1433169808000,
@@ -281,26 +285,26 @@ class FullServiceSpec extends TestService {
     Get("/streams") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      respons.contains("coinbase-account-id")
+      respons.contains(streamId)
     }
   }
 
   it should "be possible to change the subscription price" in {
-    Post("/streams/coinbase-account-id/subscription-price", "4.66") ~> routes ~> check {
+    Post(s"/streams/$streamId/subscription-price", "4.66") ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get("/streams/coinbase-account-id") ~> routes ~> check {
+    Get(s"/streams/$streamId") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("4.66"))
     }
 
-    Post("/streams/coinbase-account-id/subscription-price", "40.33") ~> routes ~> check {
+    Post(s"/streams/$streamId/subscription-price", "40.33") ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get("/streams/coinbase-account-id") ~> routes ~> check {
+    Get(s"/streams/$streamId") ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("4.66"))

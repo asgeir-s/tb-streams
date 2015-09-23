@@ -2,13 +2,12 @@
 Microservice used in the coinsignals project. 
 
 ## Interface
-	POST: /streams {	
-    	"id": "coinbase-account-id",
+	POST: /streams {
         "exchange": "bitstamp",
         "currencyPair": "btcUSD",
         "payoutAddress": "publishers-bitcoin-address",
         "subscriptionPriceUSD": 5
-    }
+    } 	returns => {"id": "someId", "apiKeyId": "someApiKeyId"}
     
     POST: /streams/'streamID'/signals {
     	"timestamp": 1432122282747,

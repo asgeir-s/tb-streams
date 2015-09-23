@@ -1,14 +1,17 @@
 package com.cluda.coinsignals.streams.util
 
+import java.util.UUID
+
 import awscala.dynamodbv2._
 import com.amazonaws.regions.Region
 import com.cluda.coinsignals.streams.model.{ComputeComponents, SStream, StreamPrivate, StreamStats}
-import com.cluda.coinsignals.streams.protocoll.NewStream
 import com.typesafe.config.Config
+
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 object DatabaseUtil {
 
-  def awscalaDB(config: Config):  DynamoDB = {
+  def awscalaDB(config: Config): DynamoDB = {
     implicit val region: Region = awscala.Region(config.getString("aws.dynamo.region"))
     val awscalaCredentials = awscala.BasicCredentialsProvider(
       config.getString("aws.accessKeyId"),
@@ -17,29 +20,30 @@ object DatabaseUtil {
     awscala.dynamodbv2.DynamoDB(awscalaCredentials)
   }
 
-  def removeStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Unit = {
+  def removeStream(table: Table, streamID: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Boolean] = Future {
     table.deleteItem(streamID)
     println("DatabaseUtil: REMOVED stream with id: " + streamID)
+    true
   }
 
-  def updateSubscriptionPrice(implicit dynamoDB: DynamoDB, table: Table, streamID: String, newSubscriptionPrice: BigDecimal): Unit = {
+  def updateSubscriptionPrice(table: Table, streamID: String, newSubscriptionPrice: BigDecimal)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Boolean] = Future {
     table.putAttributes(streamID, Seq(("subscriptionPriceUSD", newSubscriptionPrice)))
+    true
   }
 
+  def addSnsTopicArn(table: Table, streamID: String, topicArn: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Boolean] = Future {
+    table.putAttributes(streamID, Seq("topicArn" -> topicArn))
+    true
+  }
 
-  /**
-   * Blocking!
-   *
-   * @param table streamsTable
-   * @param stream id of the stream
-   * @return
-   */
-  def putStream(implicit dynamoDB: DynamoDB, table: Table, stream: SStream): SStream = {
+  private def tableForcePut(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+    val promise = Promise[SStream]()
+
     table.put(
-      stream.id,
+      stream.id.get,
       "exchange" -> stream.exchange,
       "currencyPair" -> stream.currencyPair,
-      "apiKey" -> stream.streamPrivate.apiKey,
+      "apiKeyId" -> stream.streamPrivate.apiKeyId,
       "topicArn" -> stream.streamPrivate.topicArn,
       "payoutAddress" -> stream.streamPrivate.payoutAddress,
 
@@ -69,29 +73,42 @@ object DatabaseUtil {
       "allTimeValueIncl" -> stream.stats.allTimeValueIncl,
       "allTimeValueExcl" -> stream.stats.allTimeValueExcl,
       "firstPrice" -> stream.stats.firstPrice,
-    
+
       "maxDDPrevMax" -> stream.computeComponents.maxDDPrevMax,
       "maxDDPrevMin" -> stream.computeComponents.maxDDPrevMin,
       "maxDDMax" -> stream.computeComponents.maxDDMax
     )
 
-    var streamFromDB = getStream(dynamoDB, table, stream.id)
-    while (!streamFromDB.isDefined) {
-      Thread.sleep(200)
-      streamFromDB = getStream(dynamoDB, table, stream.id)
-    }
-    streamFromDB.get
+    promise.completeWith(getStream(table, stream.id.get).map(_.get))
+
+    promise.future
+  }
+
+  def updateStream(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+    tableForcePut(table, stream)
   }
 
   /**
    * Blocking!
    *
    * @param table streamsTable
-   * @param newStream id of the stream
-   * @return
+   * @param stream id of the stream
+   * @return Future[streamId]
    */
-  def putNewStream(implicit dynamoDB: DynamoDB, table: Table, newStream: NewStream, topicArn: String, apiKey: String): SStream = {
-    putStream(dynamoDB: DynamoDB, table: Table, SStream(newStream.id, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD, StreamPrivate(apiKey, topicArn, newStream.payoutAddress)))
+  def putStreamNew(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+    val promie = Promise[SStream]()
+    val potensialId = UUID.randomUUID().toString
+
+    // TODO: make put conditional so that it only succeed if id is not used
+    table.get(potensialId) match {
+      case None =>
+        // id is available
+        promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId)))
+      case _ =>
+        // id is used
+        promie.failure(new Exception("the UUID potensialId assign is already in use."))
+    }
+    promie.future
   }
 
 
@@ -130,13 +147,13 @@ object DatabaseUtil {
     )
 
     val sPrivate = StreamPrivate(
-      apiKey = attrMap("apiKey"),
+      apiKeyId = attrMap("apiKeyId"),
       topicArn = attrMap("topicArn"),
       payoutAddress = attrMap("payoutAddress")
     )
 
     val stream = SStream(
-      id = attrMap("id"),
+      id = Some(attrMap("id")),
       exchange = attrMap("exchange"),
       currencyPair = attrMap("currencyPair"),
       status = attrMap("status").toInt,
@@ -156,7 +173,7 @@ object DatabaseUtil {
    * @param streamID the stream corresponding to the id
    * @return
    */
-  def getStream(implicit dynamoDB: DynamoDB, table: Table, streamID: String): Option[SStream] = {
+  def getStream(table: Table, streamID: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Option[SStream]] = Future {
     val streamFromDb = table.getItem(streamID)
     if (streamFromDb.isDefined) {
       Some(itemToStream(streamFromDb.get))
@@ -166,7 +183,7 @@ object DatabaseUtil {
     }
   }
 
-  def getAllStreams(implicit dynamoDB: DynamoDB, table: Table): Seq[SStream] = {
-    table.scan(filter = Seq()).map(itemToStream(_))
+  def getAllStreams(table: Table)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Seq[SStream]] = Future {
+    table.scan(filter = Seq()).map(itemToStream)
   }
 }

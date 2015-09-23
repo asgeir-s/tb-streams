@@ -224,7 +224,7 @@ object StreamUtil {
       signal.id,
       stream.subscriptionPriceUSD,
       StreamPrivate(
-        stream.streamPrivate.apiKey,
+        stream.streamPrivate.apiKeyId,
         stream.streamPrivate.topicArn,
         stream.streamPrivate.payoutAddress),
       adoptedStreamStats,

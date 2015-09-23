@@ -67,13 +67,14 @@ trait Service {
     val splitPoint = subscribeURL.indexOf(".com") + 4
     val host = subscribeURL.substring(0, splitPoint)
     val path = subscribeURL.substring(splitPoint, subscribeURL.length)
+    val https = true
 
     logger.info("host: " + host, ", path: " + path)
 
     HttpUtil.request(
       system,
       HttpMethods.GET,
-      true,
+      https,
       host,
       path
     )
