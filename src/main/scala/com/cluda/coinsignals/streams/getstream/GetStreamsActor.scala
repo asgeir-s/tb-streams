@@ -6,7 +6,7 @@ import com.cluda.coinsignals.streams.model.SStream
 import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.typesafe.config.ConfigFactory
 
-class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
+class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor with ActorLogging {
 
   implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
   implicit val ec = context.dispatcher
@@ -17,6 +17,7 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
     case (streamId: String, privateInfo: Boolean) =>
       val s = sender()
       if (tableIsEmpty) {
+        log.info(s"[$globalRequestID]: Their are no streams. Returning HttpResponds with empty array.")
         sender() ! HttpResponse(StatusCodes.OK, entity = "[]")
       }
       else {
@@ -24,17 +25,20 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
         DatabaseUtil.getStream(table, streamId).map {
           case Some(sStream: SStream) =>
             if (privateInfo) {
+              log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including private info).")
               s ! HttpResponse(StatusCodes.OK, entity = sStream.privateJson)
             }
             else {
+              log.info(s"[$globalRequestID]: Returning HttpResponds with stream (only public info).")
               s ! HttpResponse(StatusCodes.OK, entity = sStream.publicJson)
             }
           case None =>
+            log.info(s"[$globalRequestID]: Could not find stream with id: $streamId. Returning HttpResponds-NotFound.")
             s ! HttpResponse(StatusCodes.NotFound)
 
         }.recover {
           case e: Throwable =>
-            log.error("Error running 'DatabaseUtil.getStream' for stream: " + streamId + ". Error: " + e.toString)
+            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getStream' for stream: " + streamId + ". Error: " + e.toString)
             s ! HttpResponse(StatusCodes.InternalServerError)
         }.andThen {
           case _ => self ! PoisonPill
@@ -45,16 +49,18 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
       val s = sender()
       if (tableIsEmpty) {
         s ! HttpResponse(StatusCodes.OK, entity = "[]")
+        log.info(s"[$globalRequestID]: Their are no streams. Returning HttpResponds with empty array.")
       }
       else {
         val table = dynamoDB.table(tableName).get
         DatabaseUtil.getAllStreams(table).map {
           case streams: Seq[SStream] =>
+            log.info(s"[$globalRequestID]: Returning HttpResponds with array of all streams. Length: " + streams.length)
             s ! HttpResponse(StatusCodes.OK, entity =
               "[" + streams.map(_.publicJson).mkString(",") + "]")
         }.recover {
           case e: Throwable =>
-            log.error("Error running 'DatabaseUtil.getAllStreams'. Error: " + e.toString)
+            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getAllStreams'. Error: " + e.toString)
             s ! HttpResponse(StatusCodes.InternalServerError)
         }.andThen {
           case _ => self ! PoisonPill
@@ -66,5 +72,5 @@ class GetStreamsActor(tableName: String) extends Actor with ActorLogging {
 }
 
 object GetStreamsActor {
-  def props(tableName: String): Props = Props(new GetStreamsActor(tableName))
+  def props(globalRequestID: String, tableName: String): Props = Props(new GetStreamsActor(globalRequestID, tableName))
 }

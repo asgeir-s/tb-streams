@@ -1,6 +1,6 @@
 package com.cluda.coinsignals.streams.postsignal
 
-import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
+import akka.actor._
 import awscala.dynamodbv2.Table
 import com.cluda.coinsignals.streams.model.{SStream, Signal}
 import com.cluda.coinsignals.streams.protocoll.{FatalStreamCorruptedException, StreamDoesNotExistException, UnexpectedSignalException}
@@ -10,15 +10,17 @@ import com.typesafe.config.ConfigFactory
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class CalculateStatsActor(streamID: String, tableName: String) extends Actor with ActorLogging {
+class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: String) extends Actor with ActorLogging {
 
   implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
   implicit val ec = context.dispatcher
 
+  var postSignalActorRef: Option[ActorRef] = None
+
   if (dynamoDB.table(tableName).isEmpty) {
-    log.error("CalculateStatsActor(" + streamID + "): could not find streams-table (" + tableName + ")")
-    context.parent ! StreamDoesNotExistException(
-      "could not find streams-table (" + tableName + ")")
+    log.error(s"[$globalRequestID]: (StreamID: $streamID): Could not find streams-table (" + tableName + ")")
+    context.parent ! (globalRequestID, StreamDoesNotExistException(
+      s"[$globalRequestID]: (StreamID: $streamID): Could not find streams-table (" + tableName + ")"))
     self ! PoisonPill
   }
 
@@ -28,18 +30,18 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
   override def receive: Receive = {
     case signals: Seq[Signal] =>
       val s = sender()
+      postSignalActorRef = Some(s)
 
-      log.info("CalculateStatsActor(" + streamID + "): Received " + signals.length + " signal(s)")
-      log.info("signal: " + signals.head.signal)
+      log.info(s"[$globalRequestID]: (StreamID: $streamID): Received " + signals.length + " signal(s).")
 
       //for safety
       if (stream.isEmpty) {
-        log.error("CalculateStatsActor(" + streamID + "): could not find stream with id " + streamID + " in the streams-table")
+        log.error(s"[$globalRequestID]: (StreamID: $streamID): Could not find stream with id " + streamID + " in the streams-table")
         context.parent ! StreamDoesNotExistException(
-          "could not find stream with id " + streamID + " in the streams-table")
+          s"[$globalRequestID]: (StreamID: $streamID): Could not find stream with id " + streamID + " in the streams-table")
 
         sender() ! StreamDoesNotExistException(
-          "could not find stream with id " + streamID + " in the streams-table")
+          s"[$globalRequestID]: (StreamID: $streamID): Could not find stream with id " + streamID + " in the streams-table")
 
         self ! PoisonPill
       }
@@ -49,55 +51,55 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
         val newSignals = signals.filter(_.id > sStream.idOfLastSignal)
 
         if (newSignals.isEmpty) {
-          log.warning("CalculateStatsActor(" + streamID + "): only received signal(s) with ID(s) that has " +
+          log.warning(s"[$globalRequestID]: (StreamID: $streamID): Only received signal(s) with ID(s) that has " +
             "already been processed. Returns 'UnexpectedSignalException'.")
 
           sender() ! UnexpectedSignalException(
-            "only received signal(s) with ID(s) that has already been processed.")
+            s"[$globalRequestID]: (StreamID: $streamID): Only received signal(s) with ID(s) that has already been processed.")
 
           self ! PoisonPill
         }
         else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1) &&
           sStream.stats.numberOfSignals > 0) {
 
-          log.warning("CalculateStatsActor(" + streamID + "): received signal(s) with ID(s) that does " +
+          log.warning(s"[$globalRequestID]: (StreamID: $streamID): Received signal(s) with ID(s) that does " +
             "not include the expected next ID. The ID(s) are (all) higher then the " +
             "next expected next signal's id. Starts MissingSignalsActor to retrieve " +
             "the missing signals.")
 
-          context.actorOf(MissingSignalsActor.props(streamID)) ! sStream.idOfLastSignal
+          context.actorOf(MissingSignalsActor.props(globalRequestID, streamID)) ! sStream.idOfLastSignal
         }
         else {
           newSignals.sortBy(_.id).foreach(signal => {
             if (signal.id != sStream.idOfLastSignal + 1 && sStream.stats.numberOfSignals > 0) {
 
               sender() ! FatalStreamCorruptedException(streamID,
-                "try to add a signal that did no have the last id + 1")
+                s"[$globalRequestID]: (StreamID: $streamID): Try to add a signal that did no have the last id + 1")
             }
             else if (sStream.status == signal.signal) {
-              log.error("CalculateStatsActor(" + streamID + "): [FatalStreamCorruptedException] This " +
+              log.error(s"[$globalRequestID]: (StreamID: $streamID) [FatalStreamCorruptedException]: This " +
                 "signal has the same (position-)signal as the last signal. Signal id: " +
                 signal.id)
 
               sender() ! FatalStreamCorruptedException(streamID,
-                "this signal has the same (position-)signal as the last signal")
+                s"[$globalRequestID]: (StreamID: $streamID): this signal has the same (position-)signal as the last signal")
 
             }
             else if (sStream.status == 1 && signal.signal == -1 ||
               sStream.status == -1 && signal.signal == 1) {
 
-              log.error("CalculateStatsActor(" + streamID + "): [FatalStreamCorruptedException] invalid " +
+              log.error(s"[$globalRequestID]: (StreamID: $streamID): [FatalStreamCorruptedException] invalid " +
                 "sequence of signals (going from LONG to SHORT or SHORT to LONG without " +
                 "closing first).")
 
               sender() ! FatalStreamCorruptedException(streamID,
-                "invalid sequence of signals (going from LONG to SHORT or SHORT to LONG " +
+                s"[$globalRequestID]: (StreamID: $streamID): Invalid sequence of signals (going from LONG to SHORT or SHORT to LONG " +
                   "without closing first).")
 
               self ! PoisonPill
             }
             else {
-              log.info("CalculateStatsActor(" + streamID + "): signal with id " + signal.id + " was accepted as new signal. Starting to update the stream stats.")
+              log.info(s"[$globalRequestID]: (StreamID: $streamID): Signal with id " + signal.id + " was accepted as new signal. Starting to update the stream stats.")
               sStream = StreamUtil.updateStreamWitheNewSignal(sStream, signal)
             }
           })
@@ -105,11 +107,11 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
 
           DatabaseUtil.updateStream(streamsTable, sStream).map { returnedStream =>
             s ! returnedStream
-            log.info("CalculateStatsActor(" + returnedStream.id.get + "): stream updated in database. New stream object: " +
+            log.info(s"[$globalRequestID]: (StreamID: " + returnedStream.id.get + "): Stream updated in database. New stream object: " +
               sStream)
           }.recover {
             case e: Throwable =>
-              log.error("CalculateStatsActor(" + sStream.id.get + "): failed. Error: " + e.toString)
+              log.error(s"[$globalRequestID]: (StreamID: " + sStream.id.get + "): failed. Error: " + e.toString)
               s ! e
           }.andThen {
             case _ =>
@@ -118,10 +120,14 @@ class CalculateStatsActor(streamID: String, tableName: String) extends Actor wit
 
         }
       }
+
+    case e: Throwable =>
+      log.error(s"[$globalRequestID]: (StreamID: $streamID): Got error from 'MissingSignalsActor'. Returning error to 'PostSignalActor'. Error: " + e.toString)
+      postSignalActorRef.get ! e
   }
 }
 
 object CalculateStatsActor {
-  def props(streamID: String, tableName: String): Props =
-    Props(new CalculateStatsActor(streamID, tableName: String))
+  def props(globalRequestID: String, streamID: String, tableName: String): Props =
+    Props(new CalculateStatsActor(globalRequestID, streamID, tableName: String))
 }

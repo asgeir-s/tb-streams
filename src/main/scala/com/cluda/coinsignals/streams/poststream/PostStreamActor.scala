@@ -15,7 +15,7 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.ExecutionContext
 
-class PostStreamActor(tableName: String) extends Actor with ActorLogging {
+class PostStreamActor(globalRequestID: String, tableName: String) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
 
@@ -28,7 +28,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 
   private val streamsTable: awscala.dynamodbv2.Table = {
     if (dynamoDB.table(tableName).isEmpty) {
-      createAndWaitForTable(tableName)
+      createAndWaitForTable(globalRequestID, tableName)
     }
     else {
       dynamoDB.table(tableName).get
@@ -36,8 +36,8 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
   }
 
 
-  def createAndWaitForTable(tableName: String): awscala.dynamodbv2.Table = {
-    log.info("PostStreamActor: creating streamsTable with name " + tableName +
+  def createAndWaitForTable(globalRequestID: String, tableName: String): awscala.dynamodbv2.Table = {
+    log.info(s"[$globalRequestID]: Creating streamsTable with name " + tableName +
       " and witing for it to become ACTIVE")
 
     dynamoDB.createTable(
@@ -62,7 +62,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
       }
 
     }
-    log.info("PostStreamActor: streamsTable with name " + tableName + " is ready.")
+    log.info(s"[$globalRequestID]: StreamsTable with name " + tableName + " is ready.")
     dynamoDB.table(tableName).get
   }
 
@@ -83,7 +83,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
           val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
           snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
           AwsSnsUtil.createTopic(snsClient, streamId).map { arn =>
-            log.info("PostStreamActor: (aws sns) topic created with arn: " + arn)
+            log.info(s"[$globalRequestID]:  (aws sns) topic created with arn: " + arn)
             subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
             DatabaseUtil.addSnsTopicArn(streamsTable, streamId, arn).map { un =>
               import spray.json._
@@ -91,20 +91,20 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
               s ! HttpResponse(StatusCodes.Accepted, entity = Map("id" -> streamId, "apiKeyId" -> newSStream.streamPrivate.apiKeyId).toJson.prettyPrint)
             }.recover {
               case e: Throwable =>
-                log.error("'DatabaseUtil.addSnsTopicArn()' failed. Error: " + e.toString)
+                log.error(s"[$globalRequestID]: 'DatabaseUtil.addSnsTopicArn()' failed. Error: " + e.toString)
                 s ! HttpResponse(StatusCodes.InternalServerError)
             }.andThen{
               case _ => self ! PoisonPill
             }
           }.recover {
             case e: Throwable =>
-              log.error("'AwsSnsUtil.createTopic()' failed. Error: " + e.toString)
+              log.error(s"[$globalRequestID]: 'AwsSnsUtil.createTopic()' failed. Error: " + e.toString)
               s ! HttpResponse(StatusCodes.InternalServerError)
               self ! PoisonPill
           }
       }.recover {
         case e: Throwable =>
-          log.error("'DatabaseUtil.putStreamNew()' failed. Error: " + e.toString)
+          log.error(s"[$globalRequestID]: 'DatabaseUtil.putStreamNew()' failed. Error: " + e.toString)
           s ! HttpResponse(StatusCodes.InternalServerError)
           self ! PoisonPill
       }
@@ -119,7 +119,7 @@ class PostStreamActor(tableName: String) extends Actor with ActorLogging {
 }
 
 object PostStreamActor {
-  def props(tableName: String): Props = Props(new PostStreamActor(tableName))
+  def props(globalRequestID: String, tableName: String): Props = Props(new PostStreamActor(globalRequestID, tableName))
 }
 
 case class ChangeSubscriptionPrice(streamID: String, newPrice: BigDecimal)

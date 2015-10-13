@@ -19,6 +19,8 @@ import com.cluda.coinsignals.streams.util.HttpUtil
 import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
+import spray.json._
+import DefaultJsonProtocol._
 
 trait Service {
   implicit val system: ActorSystem
@@ -60,84 +62,98 @@ trait Service {
       .recover { case _ => HttpResponse(InternalServerError, entity = "InternalServerError") }
       .asInstanceOf[Future[HttpResponse]]
   }
-  def confirmAwsSnsSubscription(subscribeURL: String): Future[HttpResponse] = {
-
-    logger.info("subscribeURL: " + subscribeURL)
-
-    val splitPoint = subscribeURL.indexOf(".com") + 4
-    val host = subscribeURL.substring(0, splitPoint)
-    val path = subscribeURL.substring(splitPoint, subscribeURL.length)
-    val https = true
-
-    logger.info("host: " + host, ", path: " + path)
-
-    HttpUtil.request(
-      system,
-      HttpMethods.GET,
-      https,
-      host,
-      path
-    )
-
-  }
 
 
   val routes = {
-    import spray.json._
-    import DefaultJsonProtocol._
+    headerValueByName("Global-Request-ID") { globalRequestID =>
 
-    pathPrefix("ping") {
-      complete {
-        HttpResponse(OK, entity = Map("runID" -> runID.toString).toJson.prettyPrint)
-      }
-    } ~
-      pathPrefix("streams") {
-        pathPrefix(Segment) { streamID =>
-          get {
-            parameters('private.as[Boolean].?) { privateInfo =>
-              complete {
-                perRequestActor[(String, Boolean)](GetStreamsActor.props(streamsTableName), (streamID, privateInfo.getOrElse(false)))
-              }
-            }
-          } ~
-            pathPrefix("subscription-price") {
-              post {
-                entity(as[String]) { newPriceString =>
-                  val newPrice = BigDecimal(newPriceString)
-                  complete(
-                    perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(streamsTableName), ChangeSubscriptionPrice(streamID, newPrice))
-                  )
+      pathPrefix("ping") {
+        complete {
+          logger.info(s"[$globalRequestID]: Answering ping request")
+          HttpResponse(OK, entity = Map("runID" -> runID.toString, "globalRequestID" -> globalRequestID).toJson.prettyPrint)
+        }
+      } ~
+        pathPrefix("streams") {
+          pathPrefix(Segment) { streamID =>
+            get {
+              parameters('private.as[Boolean].?) { privateInfo =>
+                complete {
+                  logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
+                  perRequestActor[(String, Boolean)](GetStreamsActor.props(globalRequestID, streamsTableName),
+                  (streamID, privateInfo.getOrElse(false)))
                 }
               }
             } ~
-            pathPrefix("signals") {
-              post {
-                entity(as[String]) { bodyString =>
-                  import spray.json._
-                  val json = bodyString.parseJson
-                  complete {
-                    import SignalJsonProtocol._
-                    perRequestActor[Seq[Signal]](PostSignalActor.props(streamID, streamsTableName), json.convertTo[Seq[Signal]])
+              pathPrefix("subscription-price") {
+                post {
+                  entity(as[String]) { newPriceString =>
+                    try {
+                      val newPrice = BigDecimal(newPriceString)
+                      logger.info(s"[$globalRequestID]: Received post new subscription-price for stream ($streamID). " +
+                        s"New price: $newPrice.")
+                      complete(
+                        perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(globalRequestID, streamsTableName),
+                      ChangeSubscriptionPrice(streamID, newPrice))
+                      )
+                    }
+                    catch {
+                      case e: Throwable =>
+                        logger.error(s"[$globalRequestID]: Received unknown POST subscription-price: $newPriceString. " +
+                          s"Returning 'BadRequest'. For stream: $streamID. Error: " + e.toString)
+                        complete(HttpResponse(BadRequest, entity = "BadRequest"))
+                    }
+                  }
+                }
+              } ~
+              pathPrefix("signals") {
+                post {
+                  entity(as[String]) { newSignalsString =>
+                    try {
+                      import SignalJsonProtocol._
+                      val signals = newSignalsString.parseJson.convertTo[Seq[Signal]]
+                      logger.info(s"[$globalRequestID]: Received post new signal(s) for stream ($streamID). " +
+                        s"Signals:" + signals.toJson.compactPrint)
+                      complete {
+                        import SignalJsonProtocol._
+                        perRequestActor[Seq[Signal]](PostSignalActor.props(globalRequestID, streamID, streamsTableName),
+                      signals)
+                      }
+                    }
+                    catch {
+                      case e: Throwable =>
+                        logger.error(s"[$globalRequestID]: Received unknown POST signal(s): $newSignalsString. " +
+                          s"Returning 'BadRequest'. For stream: $streamID. Error: " + e.toString)
+                        complete(HttpResponse(BadRequest, entity = "BadRequest"))
+                    }
                   }
                 }
               }
-            }
-        } ~
-          post {
-            entity(as[String]) { streamString =>
-              import NewStreamJsonProtocol._
-              val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
+          } ~
+            post {
+              entity(as[String]) { streamString =>
+                try {
+                  import NewStreamJsonProtocol._
+                  val newStream: NewStream = streamString.parseJson.convertTo[NewStream]
+                  logger.info(s"[$globalRequestID]: Received post new stream: " + newStream.toJson.compactPrint)
+                  complete {
+                    perRequestActor[NewStream](PostStreamActor.props(globalRequestID, streamsTableName), newStream)
+                  }
+                }
+                catch {
+                  case e: Throwable =>
+                    logger.error(s"[$globalRequestID]: Received unknown POST stream-type: $streamString. " +
+                      s"Returning 'BadRequest'. Error: " + e.toString)
+                    complete(HttpResponse(BadRequest, entity = "BadRequest"))
+                }
+              }
+            } ~
+            get {
               complete {
-                perRequestActor[NewStream](PostStreamActor.props(streamsTableName), newStream)
+                perRequestActor[String](GetStreamsActor.props(globalRequestID, streamsTableName), "all")
               }
             }
-          } ~
-          get {
-            complete {
-              perRequestActor[String](GetStreamsActor.props(streamsTableName), "all")
-            }
-          }
-      }
+        }
+    }
   }
 
 

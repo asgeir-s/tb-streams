@@ -1,6 +1,9 @@
 package com.cluda.coinsignals.streams.service
 
+import java.util.UUID
+
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.model.headers.RawHeader
 import com.amazonaws.regions.Region
 import com.typesafe.config.ConfigFactory
 
@@ -8,6 +11,8 @@ class FullServiceSpec extends TestService {
 
   override val streamsTableName: String = "postStreamSpec"
   var streamId = ""
+  def globalRequestIDHeader() = RawHeader("Global-Request-ID", UUID.randomUUID().toString)
+
 
   it should "responds accept the new stream and return the id" in {
     import spray.json._
@@ -18,7 +23,7 @@ class FullServiceSpec extends TestService {
         | "currencyPair": "btcUSD",
         | "payoutAddress": "publishers-bitcoin-address",
         | "subscriptionPriceUSD": 5
-        |}""".stripMargin) ~> routes ~> check {
+        |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
@@ -40,7 +45,7 @@ class FullServiceSpec extends TestService {
           |  "value": 100,
           |  "signal": 1
           |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId))
@@ -65,7 +70,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId))
@@ -98,7 +103,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId))
@@ -134,10 +139,10 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 0
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
       val respons = responseAs[String]
-      assert(respons.contains("invalid sequence of signals"))
+      assert(respons.contains("Invalid sequence of signals"))
     }
     // Correct
     Post(s"/streams/$streamId/signals",
@@ -165,14 +170,14 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId))
     }
   }
 
-  it should "responds with 'NotAcceptable' when the id has te expected next id but the posting is the same as the last position" in {
+  it should "responds with 'NotAcceptable' when the id has the expected next id but the posting is the same as the last position" in {
     Post(s"/streams/$streamId/signals",
       """[{
         |  "timestamp": 1432122282747,
@@ -182,7 +187,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
     }
   }
@@ -197,7 +202,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NoContent
     }
   }
@@ -212,7 +217,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Conflict
       val respons = responseAs[String]
     }
@@ -220,7 +225,7 @@ class FullServiceSpec extends TestService {
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get(s"/streams/$streamId") ~> routes ~> check {
+    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId))
@@ -230,7 +235,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get(s"/streams/$streamId?private=true") ~> routes ~> check {
+    Get(s"/streams/$streamId?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId))
@@ -240,11 +245,11 @@ class FullServiceSpec extends TestService {
   }
 
   it should "respondse with NoContent when trying to retreive a stream that does not exist" in {
-    Get("/streams/fackestream?private=true") ~> routes ~> check {
+    Get("/streams/fackestream?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
-    Get("/streams/fackestream") ~> routes ~> check {
+    Get("/streams/fackestream").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -261,7 +266,7 @@ class FullServiceSpec extends TestService {
           |"value": 1.0000000000,
           |"signal": 0
           |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
@@ -275,14 +280,14 @@ class FullServiceSpec extends TestService {
           |"value": 1.0000000000,
           |"signal": 1
           |}]""".stripMargin
-    ) ~> routes ~> check {
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
   }
 
   it should "be possible to get all streams" in {
-    Get("/streams") ~> routes ~> check {
+    Get("/streams").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       respons.contains(streamId)
@@ -290,21 +295,21 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to change the subscription price" in {
-    Post(s"/streams/$streamId/subscription-price", "4.66") ~> routes ~> check {
+    Post(s"/streams/$streamId/subscription-price", "4.66").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get(s"/streams/$streamId") ~> routes ~> check {
+    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("4.66"))
     }
 
-    Post(s"/streams/$streamId/subscription-price", "40.33") ~> routes ~> check {
+    Post(s"/streams/$streamId/subscription-price", "40.33").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get(s"/streams/$streamId") ~> routes ~> check {
+    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("4.66"))

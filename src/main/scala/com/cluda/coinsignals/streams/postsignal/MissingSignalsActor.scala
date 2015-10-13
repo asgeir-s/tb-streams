@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.{Future, Promise}
 
-class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
+class MissingSignalsActor(globalRequestID: String, streamID: String) extends Actor with ActorLogging {
 
   implicit val materializer = ActorMaterializer()
   implicit val actorSystem = context.system
@@ -31,14 +31,14 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
     val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
     val path = "/streams/" + streamID + "/signals?fromId=" + id
     val request = HttpRequest(GET, uri = path)
-    log.info("MissingSignalsActor: for stream " + streamID + " sends request: " + request.toString)
+    log.info(s"[$globalRequestID]: (StreamID: $streamID): Sends request: " + request.toString)
     Source.single(request).via(conn).runWith(Sink.head[HttpResponse]).map { x =>
       Unmarshal(x.entity).to[String].map { body =>
           promise.success(body.parseJson.convertTo[Seq[Signal]])
       }
     }.recover{
       case e: Throwable =>
-        log.error(s"MissingSignalsActor: Could not get signals from $signalsHost$path. Error: " + e.toString)
+        log.error(s"[$globalRequestID]: (StreamID: $streamID): Could not get signals from $signalsHost$path. Error: " + e.toString)
         promise.failure(e)
     }
     promise.future
@@ -49,10 +49,11 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
       val s = sender()
 
       getSignalsFromId(lastProcessedId).map { signals =>
-        log.info("MissingSignalsActor: for stream " + streamID + " got back " + signals.length + " signals")
+        log.info(s"[$globalRequestID]: (StreamID: $streamID): Got back " + signals.length + " signals")
         s ! signals
       }.recover{
         case e: Throwable =>
+          log.error(s"[$globalRequestID]: (StreamID: $streamID): Failed getting signals from id: $lastProcessedId. Error: " + e.toString)
           s ! e
       }.andThen{
         case _ => self ! PoisonPill
@@ -63,5 +64,5 @@ class MissingSignalsActor(streamID: String) extends Actor with ActorLogging {
 }
 
 object MissingSignalsActor {
-  def props(streamID: String): Props = Props(new MissingSignalsActor(streamID))
+  def props(globalRequestID: String, streamID: String): Props = Props(new MissingSignalsActor(globalRequestID, streamID))
 }

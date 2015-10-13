@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- For assistance related to logback-translator or configuration  -->
+<!-- files in general, please contact the logback user mailing list -->
+<!-- at http://www.qos.ch/mailman/listinfo/logback-user             -->
+<!--                                                                -->
+<!-- For professional support please see                            -->
+<!--    http://www.qos.ch/shop/products/professionalSupport         -->
+<!--                                                                -->
+<configuration scan="false" debug="false">
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%-5level] [%X{akkaTimestamp}] [%c{1}] [%X{akkaSource}] [%X{sourceThread}] %m%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="org.eclipse.jetty.util.log" level="INFO"/>
+    <root level="INFO">
+        <appender-ref ref="stdout"/>
+    </root>
+</configuration>
