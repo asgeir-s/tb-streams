@@ -3,7 +3,9 @@ package com.cluda.coinsignals.streams.util
 import java.util.UUID
 
 import awscala.dynamodbv2._
+import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.Region
+import com.amazonaws.services.sns.AmazonSNSClient
 import com.cluda.coinsignals.streams.model.{ComputeComponents, SStream, StreamPrivate, StreamStats}
 import com.typesafe.config.Config
 
@@ -13,11 +15,15 @@ object DatabaseUtil {
 
   def awscalaDB(config: Config): DynamoDB = {
     implicit val region: Region = awscala.Region(config.getString("aws.dynamo.region"))
-    val awscalaCredentials = awscala.BasicCredentialsProvider(
-      config.getString("aws.accessKeyId"),
-      config.getString("aws.secretAccessKey"))
+    val awsAccessKeyId = config.getString("aws.accessKeyId")
+    val awsSecretAccessKey = config.getString("aws.secretAccessKey")
 
-    awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+    if (awsAccessKeyId == "none" || awsSecretAccessKey == "none") {
+      awscala.dynamodbv2.DynamoDB()
+    }
+    else {
+      awscala.dynamodbv2.DynamoDB(awscala.BasicCredentialsProvider(awsAccessKeyId, awsSecretAccessKey))
+    }
   }
 
   def removeStream(table: Table, streamID: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Boolean] = Future {

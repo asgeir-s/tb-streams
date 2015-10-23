@@ -29,10 +29,10 @@ Microservice used in the coinsignals project.
 	SNS_SUBSCRIBERS (default '[]') (should be comma separated)
 	STREAMS_SERVICE_ADDRESS (default 'none')
 	SIGNALS_SERVICE_PORT (default '80')
-	AWS_ACCESS_KEY_ID (default 'none')
-	AWS_SECRET_KEY (default 'none')
-	DYNAMO_STREAMS_TABLE_NAME (default 'none')
-	DYNAMO_STREAMS_TABLE_REGION (default 'none')
+	AWS_ACCESS_KEY_ID (default for env)
+	AWS_SECRET_KEY (default for env)
+	AWS_DYNAMO_STREAMS_TABLE_NAME (default 'none')
+	AWS_DYNAMO_REGION (default 'none')
 	SIGNALS_SERVICE_ADDRESS (default 'none')
 	LOG_LEVEL (default 'DEBUG')
 	
@@ -44,13 +44,12 @@ Microservice used in the coinsignals project.
 	RDS_PASSWORD
 	
 ### Test Parameters
-	LOG_LEVEL=DEBUG
-	AWS_SECRET_KEY=qjKCyXmcnlFnJhij3jIcMtcGNAKSFNYkTvHgGA5C
-	DYNAMO_STREAMS_TABLE_NAME=streams-test
-	AWS_ACCESS_KEY_ID=AKIAJNHQ6UIBTNXYYPFA
-	SIGNALS_SERVICE_PORT=80
-	SIGNALS_SERVICE_ADDRESS=cs-signals-staging.elasticbeanstalk.com
-	DYNAMO_STREAMS_TABLE_REGION=us-west-2
+AWS_SECRET_KEY=DYrwl06Mw3Xb2RefvgR6smU/wOzq+BSOI1q67vZk
+AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
+AWS_ACCESS_KEY_ID=AKIAJMVJFPFRCWGZYDVA
+SIGNALS_SERVICE_ADDRESS=signals-staging.elasticbeanstalk.com
+STREAMS_SERVICE_ADDRESS=streams-staging.elasticbeanstalk.com
+AWS_DYNAMO_REGION=us-west-2
 
 ## OSX Set Up
 ##### Docker

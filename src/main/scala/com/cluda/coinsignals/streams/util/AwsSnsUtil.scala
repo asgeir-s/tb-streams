@@ -22,11 +22,15 @@ object AwsSnsUtil {
   }
 
   def amazonSNSClient(config: Config): AmazonSNSClient = {
-    val awsJavaCredentials = new BasicAWSCredentials(
-      config.getString("aws.accessKeyId"),
-      config.getString("aws.secretAccessKey"))
+    val awsAccessKeyId = config.getString("aws.accessKeyId")
+    val awsSecretAccessKey = config.getString("aws.secretAccessKey")
 
-    new AmazonSNSClient(awsJavaCredentials)
+    if (awsAccessKeyId == "none" || awsSecretAccessKey == "none") {
+      new AmazonSNSClient()
+    }
+    else {
+      new AmazonSNSClient(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
+    }
   }
 
 }
