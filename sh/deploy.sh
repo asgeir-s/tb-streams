@@ -15,4 +15,4 @@ aws s3 cp $CIRCLE_ARTIFACTS/$SERVICE_NAME.zip s3://$EB_BUCKET/$FOLDER/$SERVICE_N
 aws elasticbeanstalk create-application-version --application-name $APPLICATION_NAME --version-label $SHA1 --source-bundle S3Bucket=$EB_BUCKET,S3Key=$FOLDER/$SERVICE_NAME-$SHA1.zip
 
 # Update Elastic Beanstalk environment to new version
-aws elasticbeanstalk update-environment --environment-name cs-$SERVICE_NAME-staging --version-label $SHA1
+aws elasticbeanstalk update-environment --environment-name tb-staging-$SERVICE_NAME --version-label $SHA1
