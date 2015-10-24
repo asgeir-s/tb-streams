@@ -7,7 +7,7 @@ cd docker
 EB_BUCKET=tradersbit-staging
 FOLDER=streams-app
 SERVICE_NAME=streams
-APPLICATION_NAME=TradersBit-staging
+APPLICATION_NAME=TradersBit
 
 zip $CIRCLE_ARTIFACTS/$SERVICE_NAME Dockerfile Dockerrun.aws.json $SERVICE_NAME.jar .ebextensions/* .elasticbeanstalk/*
 
