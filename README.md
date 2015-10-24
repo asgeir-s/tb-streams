@@ -27,7 +27,6 @@ Microservice used in the coinsignals project.
    	
 ## Environment Variables
 	SNS_SUBSCRIBERS (default '[]') (should be comma separated)
-	STREAMS_SERVICE_ADDRESS (default 'none')
 	SIGNALS_SERVICE_PORT (default '80')
 	AWS_ACCESS_KEY_ID (default for env)
 	AWS_SECRET_KEY (default for env)
@@ -48,7 +47,6 @@ AWS_SECRET_KEY=DYrwl06Mw3Xb2RefvgR6smU/wOzq+BSOI1q67vZk
 AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
 AWS_ACCESS_KEY_ID=AKIAJMVJFPFRCWGZYDVA
 SIGNALS_SERVICE_ADDRESS=signals-staging.elasticbeanstalk.com
-STREAMS_SERVICE_ADDRESS=streams-staging.elasticbeanstalk.com
 AWS_DYNAMO_REGION=us-west-2
 
 ## OSX Set Up

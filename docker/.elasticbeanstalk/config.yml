@@ -2,9 +2,9 @@ branch-defaults:
   default:
     environment: null
 global:
-  application_name: coinsignals
+  application_name: TradersBit
   default_ec2_keyname: null
-  default_platform: 64bit Amazon Linux 2015.03 v2.0.0 running Docker 1.6.2
+  default_platform: Docker 1.7.1
   default_region: null
-  profile: null
+  profile: eb-cli
   sc: null

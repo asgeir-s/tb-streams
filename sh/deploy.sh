@@ -2,15 +2,12 @@
 
 SHA1=$1
 
-unset AWS_ACCESS_KEY_ID
-unset AWS_SECRET_KEY
-
 cd docker
 # Create new Elastic Beanstalk version
-EB_BUCKET=coinsignals
+EB_BUCKET=tradersbit-staging
 FOLDER=streams-app
 SERVICE_NAME=streams
-APPLICATION_NAME=coinsignals
+APPLICATION_NAME=TradersBit-staging
 
 zip $CIRCLE_ARTIFACTS/$SERVICE_NAME Dockerfile Dockerrun.aws.json $SERVICE_NAME.jar .ebextensions/* .elasticbeanstalk/*
 
