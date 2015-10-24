@@ -5,6 +5,7 @@ import java.util.UUID
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.RawHeader
 import com.amazonaws.regions.Region
+import com.cluda.coinsignals.streams.util.DatabaseUtil
 import com.typesafe.config.ConfigFactory
 
 class FullServiceSpec extends TestService {
@@ -319,13 +320,7 @@ class FullServiceSpec extends TestService {
 
 
   override def afterAll(): Unit = {
-    val config = ConfigFactory.load()
-    implicit val region: Region = awscala.Region.US_WEST_2
-    val awscalaCredentials = awscala.BasicCredentialsProvider(
-      config.getString("aws.accessKeyId"),
-      config.getString("aws.secretAccessKey"))
-
-    implicit val dynamoDB = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+    implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
 
     if (dynamoDB.table(streamsTableName).isDefined) {
       dynamoDB.table(streamsTableName).get.destroy()

@@ -22,14 +22,8 @@ class CalculateStatsActorTest extends MessagingTest {
   var testStreamId = ""
   def globalRequestID() = UUID.randomUUID().toString
 
-
-  implicit val region: Region = awscala.Region.US_WEST_2
-  val awscalaCredentials = awscala.BasicCredentialsProvider(
-    config.getString("aws.accessKeyId"),
-    config.getString("aws.secretAccessKey"))
-
   override def beforeAll(): Unit = {
-    implicit val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+    implicit val database = DatabaseUtil.awscalaDB(ConfigFactory.load())
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
     testStreamId = Await.result(DatabaseUtil.putStreamNew(table, TestData.freshStream), 5 seconds).id.get
     Await.result(DatabaseUtil.addSnsTopicArn(table, testStreamId, "topicARN"), 5 seconds)
@@ -97,7 +91,7 @@ class CalculateStatsActorTest extends MessagingTest {
   }
 
   override def afterAll(): Unit = {
-    implicit val database = awscala.dynamodbv2.DynamoDB(awscalaCredentials)
+    implicit val database = DatabaseUtil.awscalaDB(ConfigFactory.load())
     val table = DatabaseTestUtil.createStreamsTable(database, testTableName)
     DatabaseUtil.removeStream(table, testStreamId)
     super.afterAll()
