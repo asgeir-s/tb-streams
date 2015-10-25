@@ -43,11 +43,13 @@ Microservice used in the tradersbit project.
 	RDS_PASSWORD
 	
 ### Test Parameters
-AWS_SECRET_KEY=DYrwl06Mw3Xb2RefvgR6smU/wOzq+BSOI1q67vZk
-AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
-AWS_ACCESS_KEY_ID=AKIAJMVJFPFRCWGZYDVA
-SIGNALS_SERVICE_ADDRESS=signals-staging.elasticbeanstalk.com
-AWS_DYNAMO_REGION=us-west-2
+    LOG_LEVEL=DEBUG
+    AWS_SECRET_ACCESS_KEY=PPwA9sj77iCb0iyaySTiQi7wVhUB13Iwv6pYUSrc
+    AWS_ACCESS_KEY_ID=AKIAJPBHJ6UH233F2KKA
+    SIGNALS_SERVICE_ADDRESS=cs-signals-staging.elasticbeanstalk.com
+    AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
+    AWS_DYNAMO_REGION=us-west-2
+    SNS_SUBSCRIBERS=[]
 
 ## OSX Set Up
 ##### Docker
