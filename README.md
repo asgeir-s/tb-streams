@@ -34,6 +34,7 @@ Microservice used in the tradersbit project.
 	AWS_DYNAMO_REGION (default 'none')
 	SIGNALS_SERVICE_ADDRESS (default 'none')
 	LOG_LEVEL (default 'DEBUG')
+	AWS_LAMBDA_NOTIFY_EMAIL_ARN
 	
 	optional(initialized for testing and automatically provided by AWS):
 	RDS_HOSTNAME
@@ -50,6 +51,7 @@ Microservice used in the tradersbit project.
     AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
     AWS_DYNAMO_REGION=us-west-2
     SNS_SUBSCRIBERS=[]
+    AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:dev-tb-lambda-l-lNotifyEmail-XYXGK6II49WY
 
 ## OSX Set Up
 ##### Docker

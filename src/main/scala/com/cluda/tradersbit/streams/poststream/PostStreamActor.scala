@@ -8,6 +8,7 @@ import awscala.dynamodbv2._
 import com.amazonaws.regions.{Region, Regions}
 import com.amazonaws.services.dynamodbv2.model.{DescribeTableRequest, TableStatus}
 import com.amazonaws.services.sns.AmazonSNSClient
+import com.amazonaws.services.sns.model.SubscribeRequest
 import com.cluda.tradersbit.streams.model.StreamPrivate
 import com.cluda.tradersbit.streams.util.AwsSnsUtil
 import com.cluda.tradersbit.streams.model.{StreamPrivate, SStream}
@@ -85,6 +86,14 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
           val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
           snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
           AwsSnsUtil.createTopic(snsClient, streamId).map { arn =>
+            val result = snsClient.subscribe(arn, "lambda", config.getString("aws.lambda.notify.email"))
+            if(result.getSubscriptionArn.length > 1) {
+              log.info(s"[$globalRequestID] : emailNotifyLambda successfully subscribes to this new stream. StreamID: $streamId")
+            }
+            else {
+              log.error(s"[$globalRequestID]: FATAL: emailNotifyLambda FAILED to subscribe to this new stream. StreamID: $streamId")
+            }
+
             log.info(s"[$globalRequestID]:  (aws sns) topic created with arn: " + arn)
             subscribers.map(AwsSnsUtil.addSubscriber(snsClient, arn, _))
             DatabaseUtil.addSnsTopicArn(streamsTable, streamId, arn).map { un =>
