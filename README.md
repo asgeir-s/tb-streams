@@ -51,7 +51,7 @@ Microservice used in the tradersbit project.
     AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
     AWS_DYNAMO_REGION=us-west-2
     SNS_SUBSCRIBERS=[]
-    AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:dev-tb-lambda-l-lNotifyEmail-XYXGK6II49WY
+    AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:tb-notify-email
 
 ## OSX Set Up
 ##### Docker
