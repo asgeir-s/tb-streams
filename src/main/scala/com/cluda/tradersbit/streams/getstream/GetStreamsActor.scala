@@ -14,7 +14,7 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
   val tableIsEmpty = dynamoDB.table(tableName).isEmpty
 
   override def receive: Receive = {
-    case (streamId: String, privateInfo: Boolean) =>
+    case (streams: List[String], privateInfo: Boolean) =>
       val s = sender()
       if (tableIsEmpty) {
         log.info(s"[$globalRequestID]: Their are no streams. Returning HttpResponds with empty array.")
@@ -22,23 +22,23 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
       }
       else {
         val table = dynamoDB.table(tableName).get
-        DatabaseUtil.getStream(table, streamId).map {
-          case Some(sStream: SStream) =>
+        DatabaseUtil.getStreams(table, streams).map {
+          case Some(sStreams: List[SStream]) =>
             if (privateInfo) {
               log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including private info).")
-              s ! HttpResponse(StatusCodes.OK, entity = sStream.privateJson)
+              s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.privateJson}).mkString(","))
             }
             else {
               log.info(s"[$globalRequestID]: Returning HttpResponds with stream (only public info).")
-              s ! HttpResponse(StatusCodes.OK, entity = sStream.publicJson)
+              s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.publicJson}).mkString(","))
             }
           case None =>
-            log.info(s"[$globalRequestID]: Could not find stream with id: $streamId. Returning HttpResponds-NotFound.")
+            log.info(s"[$globalRequestID]: Could not find streams with id's:" + streams.mkString(",") + ". Returning HttpResponds-NotFound.")
             s ! HttpResponse(StatusCodes.NotFound)
 
         }.recover {
           case e: Throwable =>
-            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getStream' for stream: " + streamId + ". Error: " + e.toString)
+            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getStreams' for streams: " + streams.mkString(",") + ". Error: " + e.toString)
             s ! HttpResponse(StatusCodes.InternalServerError)
         }.andThen {
           case _ => self ! PoisonPill

@@ -316,6 +316,54 @@ class FullServiceSpec extends TestService {
       assert(!respons.contains("4.66"))
       assert(respons.contains("40.33"))
     }
+
+  }
+
+  it should "be possible to get requested streams's public info" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": [$streamId],
+          | "private": false
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe Accepted
+      val respons = responseAs[String]
+      assert(!respons.contains("status"))
+      assert(respons.contains(streamId))
+
+    }
+  }
+
+  it should "return th public info for the stream when the private field are missing" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": [$streamId],
+          | "private": false
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe Accepted
+      val respons = responseAs[String]
+      assert(!respons.contains("status"))
+      assert(respons.contains(streamId))
+
+    }
+  }
+
+  it should "be possible to get requested streams's private info" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": [$streamId],
+          | "private": true
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe Accepted
+      val respons = responseAs[String]
+      assert(respons.contains("status"))
+      assert(respons.contains(streamId))
+    }
   }
 
 

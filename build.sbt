@@ -2,9 +2,9 @@ organization := "com.cluda"
 
 name := "streams"
 
-version := "0.0.1"
+version := "0.1.0"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
@@ -19,8 +19,8 @@ mainClass in assembly := Some("com.cluda.tradersbit.streams.Boot")
 resolvers += "sonatype-oss-snapshot" at "https://oss.sonatype.org/content/repositories/snapshots" // for xchange snapshots
 
 libraryDependencies ++= {
-  val akkaV       = "2.3.14"
-  val akkaStreamV = "1.0"
+  val akkaV       = "2.4.1"
+  val akkaStreamV = "2.0-M2"
   val scalaTestV  = "2.2.4"
   Seq(
     "com.typesafe.akka"     %%    "akka-actor"                              %     akkaV,
@@ -31,10 +31,10 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %%    "akka-http-spray-json-experimental"       %     akkaStreamV,
     "com.typesafe.akka"     %%    "akka-http-testkit-experimental"          %     akkaStreamV,
     "org.scalatest"         %%    "scalatest"                               %     scalaTestV      %     "test",
-    "com.github.seratch"    %%    "awscala"                                 %     "0.5.+",
-    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.10.37",
+    "com.github.seratch"    %%    "awscala"                                 %     "0.5.5",
+    "com.amazonaws"          %    "aws-java-sdk-sns"                        %     "1.10.40",
     "commons-codec"          %    "commons-codec"                           %     "1.10",
-    "org.bitbucket.b_c"      %    "jose4j"                                  %     "0.4.3",
+    "org.bitbucket.b_c"      %    "jose4j"                                  %     "0.4.4",
     "ch.qos.logback"         %    "logback-classic"                         %     "1.1.3"
   )
 }

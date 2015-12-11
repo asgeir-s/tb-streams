@@ -82,11 +82,17 @@ trait Service {
               parameters('private.as[Boolean].?) { privateInfo =>
                 complete {
                   logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
-                  perRequestActor[(String, Boolean)](GetStreamsActor.props(globalRequestID, streamsTableName),
-                  (streamID, privateInfo.getOrElse(false)))
+                  perRequestActor[(List[String], Boolean)](GetStreamsActor.props(globalRequestID, streamsTableName),
+                  (List(streamID), privateInfo.getOrElse(false)))
                 }
               }
             } ~
+              pathPrefix("get") {
+                post {
+                  // get streams
+                  complete("some")
+                }
+              }  ~
               pathPrefix("subscription-price") {
                 post {
                   entity(as[String]) { newPriceString =>

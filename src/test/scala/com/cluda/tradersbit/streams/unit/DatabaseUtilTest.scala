@@ -19,9 +19,9 @@ class DatabaseUtilTest extends UnitTest {
     DatabaseUtil.putStreamNew(testDatabase, TestData.adoptedStream).map{ stream =>
       val streamId = stream.id.get
       assert(streamId == TestData.adoptedStream.id.get)
-      DatabaseUtil.getStream(testDatabase, streamId).map { streamBack =>
-        assert(streamBack.isDefined)
-        assert(streamBack.get == TestData.adoptedStream)
+      DatabaseUtil.getStreams(testDatabase, List(streamId)).map { streamsBack =>
+        assert(streamsBack.isDefined)
+        assert(streamsBack.get.last == TestData.adoptedStream)
       }
     }
   }
@@ -31,9 +31,9 @@ class DatabaseUtilTest extends UnitTest {
     DatabaseUtil.putStreamNew(testDatabase, TestData.freshStream).map { stream =>
       val streamId = stream.id.get
       assert(streamId == TestData.freshStream.id.get)
-      DatabaseUtil.getStream(testDatabase, streamId).map { streamBack =>
-        assert(streamBack.isDefined)
-        assert(streamBack.get == TestData.freshStream)
+      DatabaseUtil.getStreams(testDatabase, List(streamId)).map { streamsBack =>
+        assert(streamsBack.isDefined)
+        assert(streamsBack.get.last == TestData.freshStream)
       }
 
     }

@@ -86,7 +86,7 @@ object DatabaseUtil {
       "maxDDMax" -> stream.computeComponents.maxDDMax
     )
 
-    promise.completeWith(getStream(table, stream.id.get).map(_.get))
+    promise.completeWith(getStreams(table, List(stream.id.get)).map(_.get.last))
 
     promise.future
   }
@@ -96,12 +96,12 @@ object DatabaseUtil {
   }
 
   /**
-   * Blocking!
-   *
-   * @param table streamsTable
-   * @param stream id of the stream
-   * @return Future[streamId]
-   */
+    * Blocking!
+    *
+    * @param table streamsTable
+    * @param stream id of the stream
+    * @return Future[streamId]
+    */
   def putStreamNew(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
     val promie = Promise[SStream]()
     val potensialId = UUID.randomUUID().toString
@@ -175,15 +175,31 @@ object DatabaseUtil {
   }
 
   /**
-   *
-   * @param table streamsTable
-   * @param streamID the stream corresponding to the id
-   * @return
-   */
-  def getStream(table: Table, streamID: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Option[SStream]] = Future {
-    val streamFromDb = table.getItem(streamID)
-    if (streamFromDb.isDefined) {
-      Some(itemToStream(streamFromDb.get))
+    *
+    * @param table streamsTable
+    * @param streamIDs the streams corresponding to the id
+    * @return
+    */
+  def getStreams(table: Table, streamIDs: List[String])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Option[List[SStream]]] = Future {
+    println("-------------- getStreams: [" + streamIDs.mkString(",") + "]")
+    val streamFromDb: Seq[Item] = {
+      if (streamIDs.length == 1) {
+        if (table.getItem(streamIDs.last).isDefined) {
+          Seq(table.getItem(streamIDs.last).get)
+        }
+        else {
+          Seq[Item]()
+        }
+      }
+      else {
+        table.batchGetItems(streamIDs.map(x => ("id", x)))
+      }
+    }
+
+    if (streamFromDb.length > 0) {
+      println("============ streams" + streamFromDb.mkString(","))
+
+      Some(streamFromDb.map(itemToStream).toList)
     }
     else {
       None
