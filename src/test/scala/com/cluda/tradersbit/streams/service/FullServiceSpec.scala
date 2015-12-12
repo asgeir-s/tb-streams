@@ -430,10 +430,6 @@ class FullServiceSpec extends TestService {
       status shouldBe OK
       val respons = responseAs[String]
 
-      println("respons private: " + respons)
-      println(streamId1)
-      println(streamId2)
-
       assert(respons.contains("status"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
