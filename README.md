@@ -23,6 +23,11 @@ Microservice used in the tradersbit project.
     GET:  /streams/'streamID' returns Stream info and stats
     
     GET: /streams returns stream info for all streams
+    
+    POST: /streams/get {
+        "streams": ["streamID1", "streamID2"],
+        "privateInfo": true
+    }
    	
    	
 ## Environment Variables

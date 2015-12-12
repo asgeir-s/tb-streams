@@ -181,7 +181,6 @@ object DatabaseUtil {
     * @return
     */
   def getStreams(table: Table, streamIDs: List[String])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Option[List[SStream]]] = Future {
-    println("-------------- getStreams: [" + streamIDs.mkString(",") + "]")
     val streamFromDb: Seq[Item] = {
       if (streamIDs.length == 1) {
         if (table.getItem(streamIDs.last).isDefined) {
@@ -197,8 +196,6 @@ object DatabaseUtil {
     }
 
     if (streamFromDb.length > 0) {
-      println("============ streams" + streamFromDb.mkString(","))
-
       Some(streamFromDb.map(itemToStream).toList)
     }
     else {

@@ -2,7 +2,7 @@ package com.cluda.tradersbit.streams.getstream
 
 import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import com.cluda.tradersbit.streams.model.SStream
+import com.cluda.tradersbit.streams.model.{StreamsGetOptions, SStream}
 import com.cluda.tradersbit.streams.util.DatabaseUtil
 import com.typesafe.config.ConfigFactory
 
@@ -14,31 +14,41 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
   val tableIsEmpty = dynamoDB.table(tableName).isEmpty
 
   override def receive: Receive = {
-    case (streams: List[String], privateInfo: Boolean) =>
+    case streamsGetOptions: StreamsGetOptions =>
       val s = sender()
       if (tableIsEmpty) {
         log.info(s"[$globalRequestID]: Their are no streams. Returning HttpResponds with empty array.")
-        sender() ! HttpResponse(StatusCodes.OK, entity = "[]")
+        sender() ! HttpResponse(StatusCodes.NotFound, entity = "[]")
       }
       else {
         val table = dynamoDB.table(tableName).get
-        DatabaseUtil.getStreams(table, streams).map {
+        DatabaseUtil.getStreams(table, streamsGetOptions.streams).map {
           case Some(sStreams: List[SStream]) =>
-            if (privateInfo) {
+            if (streamsGetOptions.privateInfo.getOrElse(false)) {
               log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including private info).")
-              s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.privateJson}).mkString(","))
+              if(streamsGetOptions.notArray.getOrElse(false)){
+                s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.privateJson}).mkString(","))
+              }
+              else {
+                s ! HttpResponse(StatusCodes.OK, entity = "[" + sStreams.map((stream: SStream) => {stream.privateJson}).mkString(",") + "]")
+              }
             }
             else {
               log.info(s"[$globalRequestID]: Returning HttpResponds with stream (only public info).")
-              s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.publicJson}).mkString(","))
+              if(streamsGetOptions.notArray.getOrElse(false)){
+                s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.publicJson}).mkString(","))
+              }
+              else {
+                s ! HttpResponse(StatusCodes.OK, entity = "[" + sStreams.map((stream: SStream) => {stream.publicJson}).mkString(",") + "]")
+              }
             }
           case None =>
-            log.info(s"[$globalRequestID]: Could not find streams with id's:" + streams.mkString(",") + ". Returning HttpResponds-NotFound.")
+            log.info(s"[$globalRequestID]: Could not find streams with id's:" + streamsGetOptions.streams.mkString(",") + ". Returning HttpResponds-NotFound.")
             s ! HttpResponse(StatusCodes.NotFound)
 
         }.recover {
           case e: Throwable =>
-            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getStreams' for streams: " + streams.mkString(",") + ". Error: " + e.toString)
+            log.error(s"[$globalRequestID]: Error running 'DatabaseUtil.getStreams' for streams: " + streamsGetOptions.streams.mkString(",") + ". Error: " + e.toString)
             s ! HttpResponse(StatusCodes.InternalServerError)
         }.andThen {
           case _ => self ! PoisonPill

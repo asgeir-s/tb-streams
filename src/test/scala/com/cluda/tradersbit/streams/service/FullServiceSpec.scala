@@ -11,7 +11,8 @@ import com.typesafe.config.ConfigFactory
 class FullServiceSpec extends TestService {
 
   override val streamsTableName: String = "postStreamSpec"
-  var streamId = ""
+  var streamId1 = ""
+  var streamId2 = ""
   def globalRequestIDHeader() = RawHeader("Global-Request-ID", UUID.randomUUID().toString)
 
 
@@ -29,15 +30,30 @@ class FullServiceSpec extends TestService {
       val respons = responseAs[String]
       assert(respons.contains("id"))
       assert(respons.contains("apiKeyId"))
-      streamId = respons.parseJson.asJsObject.fields("id").toString()
-      streamId = streamId.substring(1, streamId.length-1)
+      streamId1 = respons.parseJson.asJsObject.fields("id").toString()
+      streamId1 = streamId1.substring(1, streamId1.length-1)
+    }
+
+    Post("/streams",
+      """{
+        | "exchange": "bitstamp",
+        | "currencyPair": "btcUSD",
+        | "payoutAddress": "publishers-bitcoin-address",
+        | "subscriptionPriceUSD": 10
+        |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe Accepted
+      val respons = responseAs[String]
+      assert(respons.contains("id"))
+      assert(respons.contains("apiKeyId"))
+      streamId2 = respons.parseJson.asJsObject.fields("id").toString()
+      streamId2 = streamId2.substring(1, streamId2.length-1)
     }
   }
 
 
 
   it should "responds with 'Accepted' and return the new stream object when a new signal is posted for an existing stream" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
         """[{
           |  "timestamp": 1432122282747,
           |  "price": 200.453,
@@ -49,12 +65,12 @@ class FullServiceSpec extends TestService {
     ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when two new signals is posted for an existing stream" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 254.453,
@@ -74,12 +90,12 @@ class FullServiceSpec extends TestService {
     ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
     }
   }
 
   it should "responds with 'Accepted' and return the new stream object when three signals is posted ina out of order sequence" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 264.453,
@@ -107,7 +123,7 @@ class FullServiceSpec extends TestService {
     ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
     }
   }
 
@@ -115,7 +131,7 @@ class FullServiceSpec extends TestService {
     "signals are in a illegal order(correct id but no CLOSE between LONG and SHORT positions), also if new signals are " +
     "received later with the same id's but correct order thay should be acceted" in {
     // illegal
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 244.453,
@@ -146,7 +162,7 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("Invalid sequence of signals"))
     }
     // Correct
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -174,12 +190,12 @@ class FullServiceSpec extends TestService {
     ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
     }
   }
 
   it should "responds with 'NotAcceptable' when the id has the expected next id but the posting is the same as the last position" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 214.453,
@@ -209,7 +225,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "responds with 'Conflict' when a signal that is the same as last signal is added. The responds body should include the stream object for the stream" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
         |  "price": 284.453,
@@ -226,38 +242,62 @@ class FullServiceSpec extends TestService {
 
 
   it should "be possible to get the stream info as json with no secrets" in {
-    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post("/streams/get",
+      s"""
+        |{
+        |   "streams": ["$streamId1"]
+        |}
+      """.stripMargin
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
-      assert(!respons.contains("topicArn"))
-      assert(!respons.contains("apiKey"))
+      assert(respons.contains(streamId1))
+      assert(!respons.contains("status"))
     }
   }
 
-  it should "be possible to get the stream info as json with apiKey and topicArn" in {
-    Get(s"/streams/$streamId?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
+  it should "be possible to get the stream info as json with private info" in {
+    Post(s"/streams/get",
+      s"""
+        |{
+        |   "streams": ["$streamId1"],
+        |   "privateInfo": true
+        |}
+      """.stripMargin
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      assert(respons.contains(streamId))
-      assert(respons.contains("topicArn"))
-      assert(respons.contains("apiKey"))
+      assert(respons.contains(streamId1))
+      assert(respons.contains("status"))
     }
   }
 
   it should "respondse with NoContent when trying to retreive a stream that does not exist" in {
-    Get("/streams/fackestream?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post("/streams/get",
+      s"""
+        |{
+        |   "streams": ["fackestream"],
+        |   "privateInfo": true
+        |}
+      """.stripMargin
+      ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
-    Get("/streams/fackestream").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post("/streams/get",
+      s"""
+         |{
+         |   "streams": ["fackestream"]
+         |}
+      """.stripMargin
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
   }
 
   it should "handle new signals incoming as AWS SNS messages" in {
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
 
         """[{
           |"timestamp":1433169808000,
@@ -271,7 +311,7 @@ class FullServiceSpec extends TestService {
       status shouldBe Accepted
     }
 
-    Post(s"/streams/$streamId/signals",
+    Post(s"/streams/$streamId1/signals",
 
         """[{
           |"timestamp":1433169808000,
@@ -291,26 +331,38 @@ class FullServiceSpec extends TestService {
     Get("/streams").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-      respons.contains(streamId)
+      respons.contains(streamId1)
     }
   }
 
   it should "be possible to change the subscription price" in {
-    Post(s"/streams/$streamId/subscription-price", "4.66").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/$streamId1/subscription-price", "4.66").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/get",
+      s"""
+         |{
+         |   "streams": ["$streamId1"]
+         |}
+      """.stripMargin
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("4.66"))
     }
 
-    Post(s"/streams/$streamId/subscription-price", "40.33").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/$streamId1/subscription-price", "40.33").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
-    Get(s"/streams/$streamId").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/get",
+      s"""
+         |{
+         |   "streams": ["$streamId1"]
+         |}
+      """.stripMargin
+    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("4.66"))
@@ -324,45 +376,105 @@ class FullServiceSpec extends TestService {
 
     Post("/streams/get",
       s"""{
-          | "streams": [$streamId],
-          | "private": false
+          | "streams": ["$streamId1"],
+          | "privateInfo": false
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
-      status shouldBe Accepted
+      status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("status"))
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
 
     }
   }
 
-  it should "return th public info for the stream when the private field are missing" in {
+  it should "return the public info for the stream when the privateInfo field are missing" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
-          | "streams": [$streamId],
-          | "private": false
+          | "streams": ["$streamId1"]
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
-      status shouldBe Accepted
+      status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("status"))
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
 
     }
   }
 
-  it should "be possible to get requested streams's private info" in {
+  it should "be possible to get requested streams's privateInfo info" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
-          | "streams": [$streamId],
-          | "private": true
+          | "streams": ["$streamId1"],
+          | "privateInfo": true
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
-      status shouldBe Accepted
+      status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("status"))
-      assert(respons.contains(streamId))
+      assert(respons.contains(streamId1))
+      assert(respons.startsWith("["))
+    }
+  }
+
+
+  it should "be possible to gte multiple requested streams with privateInfo info" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1", "$streamId2"],
+          | "privateInfo": true
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+
+      println("respons private: " + respons)
+      println(streamId1)
+      println(streamId2)
+
+      assert(respons.contains("status"))
+      assert(respons.contains(streamId1))
+      assert(respons.contains(streamId2))
+    }
+  }
+
+  it should "be possible to gte multiple requested streams without privateInfo info" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1", "$streamId2"],
+          | "privateInfo": false
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+
+      assert(!respons.contains("status"))
+      assert(respons.contains(streamId1))
+      assert(respons.contains(streamId2))
+      assert(respons.startsWith("["))
+    }
+  }
+
+  it should "for a single stream be possible to do a GET request to get the stream info as json without private info" in {
+    Get(s"/streams/$streamId1").addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(respons.contains(streamId1))
+      assert(!respons.contains("status"))
+      assert(respons.startsWith("{"))
+    }
+  }
+
+  it should "for a single stream be possible to do a GET request to get the stream info as json private info" in {
+    Get(s"/streams/$streamId1?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(respons.contains(streamId1))
+      assert(respons.contains("status"))
+      assert(respons.startsWith("{"))
     }
   }
 

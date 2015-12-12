@@ -4,39 +4,37 @@ import java.util.UUID
 
 import akka.actor.{ActorSystem, Props}
 import akka.event.LoggingAdapter
+import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.{HttpMethods, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import com.cluda.tradersbit.streams.model.SignalJsonProtocol
-import com.cluda.tradersbit.streams.poststream.ChangeSubscriptionPrice
-import com.cluda.tradersbit.streams.protocoll.NewStreamJsonProtocol
 import com.cluda.tradersbit.streams.getstream.GetStreamsActor
-import com.cluda.tradersbit.streams.model.{Signal, SignalJsonProtocol}
+import com.cluda.tradersbit.streams.model.{StreamsGetOptionsJsonProtocol, Signal, SignalJsonProtocol, StreamsGetOptions}
 import com.cluda.tradersbit.streams.postsignal.PostSignalActor
 import com.cluda.tradersbit.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
 import com.cluda.tradersbit.streams.protocoll.{NewStream, NewStreamJsonProtocol}
-import com.cluda.tradersbit.streams.util.HttpUtil
 import com.typesafe.config.Config
+import spray.json.DefaultJsonProtocol._
+import spray.json._
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
-import spray.json._
-import DefaultJsonProtocol._
 
 trait Service {
   implicit val system: ActorSystem
+
   implicit def executor: ExecutionContextExecutor
+
   implicit val materializer: Materializer
   implicit val timeout: Timeout
 
   def config: Config
+
   val logger: LoggingAdapter
   val streamsTableName: String
   val runID = UUID.randomUUID()
   var actorIDs = Map[String, Long]()
-
 
 
   def actorName(props: Props): String = {
@@ -44,22 +42,22 @@ trait Service {
     val className = classPath.substring(classPath.lastIndexOf('.') + 1)
     val id: Long = actorIDs.getOrElse(className, 0)
     if (id == 0) {
-      actorIDs = actorIDs+(className -> 1)
+      actorIDs = actorIDs + (className -> 1)
     }
     else {
-      actorIDs = actorIDs+(className -> (id + 1))
+      actorIDs = actorIDs + (className -> (id + 1))
     }
     className + id
   }
 
   /**
-   * Start a actor and pass it the decodedHttpRequest.
-   * Returns a future. If anything fails it returns HttpResponse with "BadRequest",
-   * else it returns the HttpResponse returned by the started actor
-   *
-   * @param props of the actor to start
-   * @return Future[HttpResponse]
-   */
+    * Start a actor and pass it the decodedHttpRequest.
+    * Returns a future. If anything fails it returns HttpResponse with "BadRequest",
+    * else it returns the HttpResponse returned by the started actor
+    *
+    * @param props of the actor to start
+    * @return Future[HttpResponse]
+    */
   def perRequestActor[T](props: Props, message: T): Future[HttpResponse] = {
     (system.actorOf(props, actorName(props)) ? message)
       .recover { case _ => HttpResponse(InternalServerError, entity = "InternalServerError") }
@@ -77,22 +75,29 @@ trait Service {
         }
       } ~
         pathPrefix("streams") {
-          pathPrefix(Segment) { streamID =>
-            get {
-              parameters('private.as[Boolean].?) { privateInfo =>
+          pathPrefix("get") {
+            post {
+              entity(as[String]) { streamsGetOptionsString =>
+                import StreamsGetOptionsJsonProtocol._
+                val streamsGetOptions = streamsGetOptionsString.parseJson.convertTo[StreamsGetOptions]
                 complete {
-                  logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
-                  perRequestActor[(List[String], Boolean)](GetStreamsActor.props(globalRequestID, streamsTableName),
-                  (List(streamID), privateInfo.getOrElse(false)))
+                  logger.info(s"[$globalRequestID]: Received PST for get streams. Request: " + streamsGetOptions.toJson.compactPrint)
+                  perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
+                    (streamsGetOptions))
                 }
               }
-            } ~
-              pathPrefix("get") {
-                post {
-                  // get streams
-                  complete("some")
+            }
+          } ~
+            pathPrefix(Segment) { streamID =>
+              get {
+                parameters('private.as[Boolean].?) { privateInfo =>
+                  complete {
+                    logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
+                    perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
+                      (StreamsGetOptions(List(streamID), privateInfo, Some(true))))
+                  }
                 }
-              }  ~
+              } ~
               pathPrefix("subscription-price") {
                 post {
                   entity(as[String]) { newPriceString =>
@@ -102,7 +107,7 @@ trait Service {
                         s"New price: $newPrice.")
                       complete(
                         perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(globalRequestID, streamsTableName),
-                      ChangeSubscriptionPrice(streamID, newPrice))
+                          ChangeSubscriptionPrice(streamID, newPrice))
                       )
                     }
                     catch {
@@ -114,30 +119,29 @@ trait Service {
                   }
                 }
               } ~
-              pathPrefix("signals") {
-                post {
-                  entity(as[String]) { newSignalsString =>
-                    try {
-                      import SignalJsonProtocol._
-                      val signals = newSignalsString.parseJson.convertTo[Seq[Signal]]
-                      logger.info(s"[$globalRequestID]: Received post new signal(s) for stream ($streamID). " +
-                        s"Signals:" + signals.toJson.compactPrint)
-                      complete {
+                pathPrefix("signals") {
+                  post {
+                    entity(as[String]) { newSignalsString =>
+                      try {
                         import SignalJsonProtocol._
-                        perRequestActor[Seq[Signal]](PostSignalActor.props(globalRequestID, streamID, streamsTableName),
-                      signals)
+                        val signals = newSignalsString.parseJson.convertTo[Seq[Signal]]
+                        logger.info(s"[$globalRequestID]: Received post new signal(s) for stream ($streamID). " +
+                          s"Signals:" + signals.toJson.compactPrint)
+                        complete {
+                          perRequestActor[Seq[Signal]](PostSignalActor.props(globalRequestID, streamID, streamsTableName),
+                            signals)
+                        }
                       }
-                    }
-                    catch {
-                      case e: Throwable =>
-                        logger.error(s"[$globalRequestID]: Received unknown POST signal(s): $newSignalsString. " +
-                          s"Returning 'BadRequest'. For stream: $streamID. Error: " + e.toString)
-                        complete(HttpResponse(BadRequest, entity = "BadRequest"))
+                      catch {
+                        case e: Throwable =>
+                          logger.error(s"[$globalRequestID]: Received unknown POST signal(s): $newSignalsString. " +
+                            s"Returning 'BadRequest'. For stream: $streamID. Error: " + e.toString)
+                          complete(HttpResponse(BadRequest, entity = "BadRequest"))
+                      }
                     }
                   }
                 }
-              }
-          } ~
+            } ~
             post {
               entity(as[String]) { streamString =>
                 try {
