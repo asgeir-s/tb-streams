@@ -29,6 +29,20 @@ case class SStream(
     json.parseJson.prettyPrint
   }
 
+  def publisherJson: String = {
+    import StreamStatsProtocol._
+    import spray.json._
+    val json = """{ "id": """" + id.get + """",""" +
+      """ "exchange": """" + exchange + """",""" +
+      """ "currencyPair": """" + currencyPair + """",""" +
+      """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
+      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
+      """ "status": """ + status + """,""" +
+      """ "payoutAddress": """" + streamPrivate.payoutAddress + """",""" +
+      """ "stats": """ + stats.toJson.prettyPrint + """}"""
+    json.parseJson.prettyPrint
+  }
+
   def privateJson: String = {
     import StreamStatsProtocol._
     import spray.json._

@@ -94,7 +94,7 @@ trait Service {
                   complete {
                     logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
                     perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
-                      (StreamsGetOptions(List(streamID), privateInfo, Some(true))))
+                      (StreamsGetOptions(List(streamID), if(privateInfo.getOrElse(false)) Some("private") else Some("public"), Some(true))))
                   }
                 }
               } ~

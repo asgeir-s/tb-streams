@@ -26,7 +26,7 @@ Microservice used in the tradersbit project.
     
     POST: /streams/get {
         "streams": ["streamID1", "streamID2"],
-        "privateInfo": true
+        "infoLevel": "public" (public (this is info that can be avalibele to anyone) | auth (this is info for the publisher of the stream) | private (should not be a public endpoint, no user should get access to private info-level))
     }
    	
    	

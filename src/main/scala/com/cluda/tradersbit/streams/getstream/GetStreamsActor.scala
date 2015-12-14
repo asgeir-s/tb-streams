@@ -24,8 +24,21 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
         val table = dynamoDB.table(tableName).get
         DatabaseUtil.getStreams(table, streamsGetOptions.streams).map {
           case Some(sStreams: List[SStream]) =>
-            if (streamsGetOptions.privateInfo.getOrElse(false)) {
-              log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including private info).")
+            if (streamsGetOptions.infoLevel.getOrElse("") == "auth") {
+              log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including auth level info).")
+              if (streamsGetOptions.notArray.getOrElse(false)) {
+                s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {
+                  stream.publisherJson
+                }).mkString(","))
+              }
+              else {
+                s ! HttpResponse(StatusCodes.OK, entity = "[" + sStreams.map((stream: SStream) => {
+                  stream.publisherJson
+                }).mkString(",") + "]")
+              }
+            }
+            else if (streamsGetOptions.infoLevel.getOrElse("") == "private") {
+              log.info(s"[$globalRequestID]: Returning HttpResponds with stream (including private level info).")
               if(streamsGetOptions.notArray.getOrElse(false)){
                 s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.privateJson}).mkString(","))
               }
@@ -35,11 +48,15 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
             }
             else {
               log.info(s"[$globalRequestID]: Returning HttpResponds with stream (only public info).")
-              if(streamsGetOptions.notArray.getOrElse(false)){
-                s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {stream.publicJson}).mkString(","))
+              if (streamsGetOptions.notArray.getOrElse(false)) {
+                s ! HttpResponse(StatusCodes.OK, entity = sStreams.map((stream: SStream) => {
+                  stream.publicJson
+                }).mkString(","))
               }
               else {
-                s ! HttpResponse(StatusCodes.OK, entity = "[" + sStreams.map((stream: SStream) => {stream.publicJson}).mkString(",") + "]")
+                s ! HttpResponse(StatusCodes.OK, entity = "[" + sStreams.map((stream: SStream) => {
+                  stream.publicJson
+                }).mkString(",") + "]")
               }
             }
           case None =>

@@ -29,7 +29,7 @@ class FullServiceSpec extends TestService {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
-      assert(respons.contains("apiKeyId"))
+      assert(!respons.contains("apiKeyId"))
       streamId1 = respons.parseJson.asJsObject.fields("id").toString()
       streamId1 = streamId1.substring(1, streamId1.length-1)
     }
@@ -44,7 +44,7 @@ class FullServiceSpec extends TestService {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
-      assert(respons.contains("apiKeyId"))
+      assert(!respons.contains("apiKeyId"))
       streamId2 = respons.parseJson.asJsObject.fields("id").toString()
       streamId2 = streamId2.substring(1, streamId2.length-1)
     }
@@ -256,12 +256,12 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "be possible to get the stream info as json with private info" in {
+  it should "be possible to get the stream info as json with auth level info" in {
     Post(s"/streams/get",
       s"""
         |{
         |   "streams": ["$streamId1"],
-        |   "privateInfo": true
+        |   "infoLevel": "auth"
         |}
       """.stripMargin
     ).addHeader(globalRequestIDHeader) ~> routes ~> check {
@@ -277,7 +277,7 @@ class FullServiceSpec extends TestService {
       s"""
         |{
         |   "streams": ["fackestream"],
-        |   "privateInfo": true
+        |   "infoLevel": "auth"
         |}
       """.stripMargin
       ).addHeader(globalRequestIDHeader) ~> routes ~> check {
@@ -371,13 +371,13 @@ class FullServiceSpec extends TestService {
 
   }
 
-  it should "be possible to get requested streams's public info" in {
+  it should "be possible to get requested streams's with public info level" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
           | "streams": ["$streamId1"],
-          | "privateInfo": false
+          | "infoLevel": "public"
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
@@ -387,7 +387,7 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "return the public info for the stream when the privateInfo field are missing" in {
+  it should "return the public info for the stream when the level field is missing" in {
     import spray.json._
 
     Post("/streams/get",
@@ -402,13 +402,14 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "be possible to get requested streams's privateInfo info" in {
+  it should "be possible to get requested streams's auth level info" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
           | "streams": ["$streamId1"],
-          | "privateInfo": true
+          | "infoLevel": "auth"
+          |
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
@@ -419,13 +420,13 @@ class FullServiceSpec extends TestService {
   }
 
 
-  it should "be possible to gte multiple requested streams with privateInfo info" in {
+  it should "be possible to get multiple requested streams with auth level info" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
-          | "privateInfo": true
+          | "infoLevel": "auth"
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
@@ -436,18 +437,56 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "be possible to gte multiple requested streams without privateInfo info" in {
+  it should "be possible to get multiple requested streams with public info level" in {
     import spray.json._
 
     Post("/streams/get",
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
-          | "privateInfo": false
+          | "infoLevel": "public"
           |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
 
       assert(!respons.contains("status"))
+      assert(respons.contains(streamId1))
+      assert(respons.contains(streamId2))
+      assert(respons.startsWith("["))
+    }
+  }
+
+  it should "be possible to get multiple requested streams with auth info level" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1", "$streamId2"],
+          | "infoLevel": "auth"
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+
+      assert(respons.contains("status"))
+      assert(!respons.contains("topicArn"))
+      assert(respons.contains(streamId1))
+      assert(respons.contains(streamId2))
+      assert(respons.startsWith("["))
+    }
+  }
+
+  it should "be possible to get multiple requested streams with private info level" in {
+    import spray.json._
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1", "$streamId2"],
+          | "infoLevel": "private"
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+
+      assert(respons.contains("status"))
+      assert(respons.contains("topicArn"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
       assert(respons.startsWith("["))

@@ -74,7 +74,7 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
       val s = sender()
 
       val newSStream = SStream(None, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD,
-        StreamPrivate(UUID.randomUUID().toString, "none", newStream.payoutAddress))
+        StreamPrivate("none", "none", newStream.payoutAddress))
 
       // add stream to the database and get id
       DatabaseUtil.putStreamNew(streamsTable, newSStream).map {
@@ -99,7 +99,7 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
             DatabaseUtil.addSnsTopicArn(streamsTable, streamId, arn).map { un =>
               import spray.json._
               import DefaultJsonProtocol._
-              s ! HttpResponse(StatusCodes.Accepted, entity = Map("id" -> streamId, "apiKeyId" -> newSStream.streamPrivate.apiKeyId).toJson.prettyPrint)
+              s ! HttpResponse(StatusCodes.Accepted, entity = Map("id" -> streamId).toJson.prettyPrint)
             }.recover {
               case e: Throwable =>
                 log.error(s"[$globalRequestID]: 'DatabaseUtil.addSnsTopicArn()' failed. Error: " + e.toString)
