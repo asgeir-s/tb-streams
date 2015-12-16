@@ -6,8 +6,7 @@ import awscala.dynamodbv2._
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.Region
 import com.amazonaws.services.sns.AmazonSNSClient
-import com.cluda.tradersbit.streams.model.ComputeComponents
-import com.cluda.tradersbit.streams.model.{ComputeComponents, StreamStats, StreamPrivate, SStream}
+import com.cluda.tradersbit.streams.model._
 import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -43,9 +42,11 @@ object DatabaseUtil {
     true
   }
 
-  private def tableForcePut(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+  private def tableForcePut(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
     val promise = Promise[SStream]()
 
+    import spray.json._
+    import SignalJsonProtocol._
     table.put(
       stream.id.get,
       "exchange" -> stream.exchange,
@@ -54,10 +55,10 @@ object DatabaseUtil {
       "topicArn" -> stream.streamPrivate.topicArn,
       "payoutAddress" -> stream.streamPrivate.payoutAddress,
 
-      "status" -> stream.status,
       "idOfLastSignal" -> stream.idOfLastSignal,
       "subscriptionPriceUSD" -> stream.subscriptionPriceUSD,
 
+      "status" -> stream.status,
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
       "numberOfSignals" -> stream.stats.numberOfSignals,
@@ -83,7 +84,16 @@ object DatabaseUtil {
 
       "maxDDPrevMax" -> stream.computeComponents.maxDDPrevMax,
       "maxDDPrevMin" -> stream.computeComponents.maxDDPrevMin,
-      "maxDDMax" -> stream.computeComponents.maxDDMax
+      "maxDDMax" -> stream.computeComponents.maxDDMax,
+
+      "lastSignal" -> {
+        if(lastSignal.isDefined){
+          lastSignal.get.toJson
+        }
+        else {
+          "{}".parseJson
+        }
+      }
     )
 
     promise.completeWith(getStreams(table, List(stream.id.get)).map(_.get.last))
@@ -91,8 +101,8 @@ object DatabaseUtil {
     promise.future
   }
 
-  def updateStream(table: Table, stream: SStream)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
-    tableForcePut(table, stream)
+  def updateStream(table: Table, stream: SStream, lastSignal: Signal)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+    tableForcePut(table, stream, Some(lastSignal))
   }
 
   /**
@@ -110,7 +120,7 @@ object DatabaseUtil {
     table.get(potensialId) match {
       case None =>
         // id is available
-        promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId)))
+        promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId), None))
       case _ =>
         // id is used
         promie.failure(new Exception("the UUID potensialId assign is already in use."))
@@ -120,6 +130,8 @@ object DatabaseUtil {
 
 
   def itemToStream(streamItem: Item): SStream = {
+    import spray.json._
+    import SignalJsonProtocol._
     val attrMap = streamItem.attributes.map(x => (x.name, x.value.s.getOrElse(x.value.n.getOrElse("")))).toMap
 
     val cComponents = ComputeComponents(
@@ -168,8 +180,15 @@ object DatabaseUtil {
       subscriptionPriceUSD = BigDecimal(attrMap("subscriptionPriceUSD")),
       stats = stats,
       computeComponents = cComponents,
-      streamPrivate = sPrivate
-    )
+      streamPrivate = sPrivate,
+      lastSignal = {
+        try {
+          Some(attrMap("lastSignal").parseJson.convertTo[Signal])
+        }
+        catch {
+          case e: Throwable => None
+        }
+      })
 
     stream
   }

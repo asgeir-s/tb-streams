@@ -220,7 +220,7 @@ object StreamUtil {
     SStream(
       stream.id,
       stream.exchange,
-      stream.currencyPair, 
+      stream.currencyPair,
       signal.signal,
       signal.id,
       stream.subscriptionPriceUSD,
@@ -228,6 +228,7 @@ object StreamUtil {
         stream.streamPrivate.apiKeyId,
         stream.streamPrivate.topicArn,
         stream.streamPrivate.payoutAddress),
+      stream.lastSignal,
       adoptedStreamStats,
       cComponents)
   }

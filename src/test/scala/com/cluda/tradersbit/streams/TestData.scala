@@ -42,7 +42,7 @@ object TestData {
     maxDrawDown = 0.20
   )
 
-  val adoptedStream = SStream(Some("Someid2"), "bitstamp", "btcUSD", 0, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"), adoptedStreamStats, adoptedCC)
+  val adoptedStream = SStream(Some("Someid2"), "bitstamp", "btcUSD", 0, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"), None, adoptedStreamStats, adoptedCC)
 
 
   val signalSeq = Seq(
@@ -72,6 +72,7 @@ object TestData {
   )
 
   val mathStream7 = SStream(Some("math-test"), "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*1,
@@ -103,6 +104,7 @@ object TestData {
     ))
 
   val mathStream6 = SStream(Some("math-test"), "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*2,
@@ -135,6 +137,7 @@ object TestData {
 
 
   val mathStream5 = SStream(Some("math-test"), "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*3,
@@ -166,6 +169,7 @@ object TestData {
     ))
 
   val mathStream4 = SStream(Some("math-test"), "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*4,
@@ -198,6 +202,7 @@ object TestData {
 
 
   val mathStream3 = SStream(Some("math-test"), "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*5,
@@ -230,6 +235,7 @@ object TestData {
 
 
   val mathStream2 = SStream(Some("math-test"), "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*6,
@@ -268,6 +274,7 @@ object TestData {
   // fro actor test
 
   val mathStream7actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*1,
@@ -299,6 +306,7 @@ object TestData {
     ))
 
   val mathStream6actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*2,
@@ -331,6 +339,7 @@ object TestData {
 
 
   val mathStream5actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*3,
@@ -362,6 +371,7 @@ object TestData {
     ))
 
   val mathStream4actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*4,
@@ -394,6 +404,7 @@ object TestData {
 
 
   val mathStream3actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*5,
@@ -426,6 +437,7 @@ object TestData {
 
 
   val mathStream2actor = SStream(Some("calculateStatsActorTestStream"), "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
       timeOfLastSignal = timestamp - monthMs*6,

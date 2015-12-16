@@ -15,6 +15,7 @@ case class SStream(
   idOfLastSignal: Long,
   subscriptionPriceUSD: BigDecimal,
   streamPrivate: StreamPrivate,
+  lastSignal: Option[Signal] = None,
   stats: StreamStats = StreamStats(),
   computeComponents: ComputeComponents = ComputeComponents()
   ) {
@@ -36,8 +37,9 @@ case class SStream(
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
-      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
       """ "status": """ + status + """,""" +
+      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
+      """ "lastSignal": """ + getLastSignal + """,""" +
       """ "payoutAddress": """" + streamPrivate.payoutAddress + """",""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
     json.parseJson.prettyPrint
@@ -50,15 +52,29 @@ case class SStream(
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
-      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
       """ "status": """ + status + """,""" +
+      """ "idOfLastSignal": """ + idOfLastSignal + """,""" +
+      """ "lastSignal": """ + getLastSignal + """,""" +
       """ "streamPrivate": """ + streamPrivate.toJson.prettyPrint + """,""" +
       """ "stats": """ + stats.toJson.prettyPrint + """}"""
     json.parseJson.prettyPrint
   }
 
+  def getLastSignal = {
+    import SignalJsonProtocol._
+    import StreamStatsProtocol._
+    import spray.json._
+
+    if(lastSignal.isDefined) {
+      lastSignal.get.toJson
+    }
+    else {
+      "{}".parseJson
+    }
+  }
+
   def sStreamWithId(id: String) = {
-    SStream(Some(id), exchange, currencyPair, status, idOfLastSignal, subscriptionPriceUSD, streamPrivate, stats, computeComponents)
+    SStream(Some(id), exchange, currencyPair, status, idOfLastSignal, subscriptionPriceUSD, streamPrivate, lastSignal, stats, computeComponents)
   }
 }
 

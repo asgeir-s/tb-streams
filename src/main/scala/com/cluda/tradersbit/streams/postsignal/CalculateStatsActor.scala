@@ -108,7 +108,7 @@ class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: 
           })
 
 
-          DatabaseUtil.updateStream(streamsTable, sStream).map { returnedStream =>
+          DatabaseUtil.updateStream(streamsTable, sStream, signals.maxBy(_.id)).map { returnedStream =>
             s ! returnedStream
             log.info(s"[$globalRequestID]: (StreamID: " + returnedStream.id.get + "): Stream updated in database. New stream object: " +
               sStream)
