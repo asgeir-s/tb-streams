@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, PoisonPill, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model._
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
@@ -30,7 +31,7 @@ class MissingSignalsActor(globalRequestID: String, streamID: String) extends Act
 
     val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
     val path = "/streams/" + streamID + "/signals?fromId=" + id
-    val request = HttpRequest(GET, uri = path)
+    val request = HttpRequest(GET, uri = path).addHeader(RawHeader("Global-Request-ID", globalRequestID))
     log.info(s"[$globalRequestID]: (StreamID: $streamID): Sends request: " + request.toString)
     Source.single(request).via(conn).runWith(Sink.head[HttpResponse]).map { x =>
       Unmarshal(x.entity).to[String].map { body =>
