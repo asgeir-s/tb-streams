@@ -88,10 +88,10 @@ object DatabaseUtil {
 
       "lastSignal" -> {
         if(lastSignal.isDefined){
-          lastSignal.get.toJson
+          lastSignal.get.toJson.compactPrint
         }
         else {
-          "{}".parseJson
+          "{}".parseJson.compactPrint
         }
       }
     )
