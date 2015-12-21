@@ -3,6 +3,7 @@ Microservice used in the tradersbit project.
 
 ## Interface
 	POST: /streams {
+	    "name": "Unique Name"
         "exchange": "bitstamp",
         "currencyPair": "btcUSD",
         "payoutAddress": "publishers-bitcoin-address",

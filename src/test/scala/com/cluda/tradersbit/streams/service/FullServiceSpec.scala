@@ -19,9 +19,13 @@ class FullServiceSpec extends TestService {
   it should "responds accept the new stream and return the id" in {
     import spray.json._
 
+    val randomName1 = UUID.randomUUID().toString.substring(0, 11)
+    val randomName2 = UUID.randomUUID().toString.substring(0, 11)
+
     Post("/streams",
-      """{
-        | "exchange": "bitstamp",
+      s"""{
+        | "name": "$randomName1",
+        | "exchange": "bitfinex",
         | "currencyPair": "btcUSD",
         | "payoutAddress": "publishers-bitcoin-address",
         | "subscriptionPriceUSD": 5
@@ -34,9 +38,11 @@ class FullServiceSpec extends TestService {
       streamId1 = streamId1.substring(1, streamId1.length-1)
     }
 
+
     Post("/streams",
-      """{
-        | "exchange": "bitstamp",
+      s"""{
+        | "name": "$randomName2",
+        | "exchange": "bitfinex",
         | "currencyPair": "btcUSD",
         | "payoutAddress": "publishers-bitcoin-address",
         | "subscriptionPriceUSD": 10
@@ -47,6 +53,41 @@ class FullServiceSpec extends TestService {
       assert(!respons.contains("apiKeyId"))
       streamId2 = respons.parseJson.asJsObject.fields("id").toString()
       streamId2 = streamId2.substring(1, streamId2.length-1)
+    }
+  }
+
+  it should "not accept two streams with the same name" in {
+    import spray.json._
+
+    val randomName1 = UUID.randomUUID().toString.substring(0, 11)
+
+    Post("/streams",
+      s"""{
+          | "name": "$randomName1",
+          | "exchange": "bitfinex",
+          | "currencyPair": "btcUSD",
+          | "payoutAddress": "publishers-bitcoin-address",
+          | "subscriptionPriceUSD": 5
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe Accepted
+      val respons = responseAs[String]
+      assert(respons.contains("id"))
+      assert(!respons.contains("apiKeyId"))
+      streamId1 = respons.parseJson.asJsObject.fields("id").toString()
+      streamId1 = streamId1.substring(1, streamId1.length-1)
+    }
+
+    Post("/streams",
+      s"""{
+          | "name": "$randomName1",
+          | "exchange": "bitfinex",
+          | "currencyPair": "btcUSD",
+          | "payoutAddress": "publishers-bitcoin-address",
+          | "subscriptionPriceUSD": 10
+          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe InternalServerError
+      val respons = responseAs[String]
+      println(respons)
     }
   }
 
@@ -252,6 +293,7 @@ class FullServiceSpec extends TestService {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
+      assert(respons.contains("name"))
       assert(!respons.contains("status"))
     }
   }
@@ -268,6 +310,7 @@ class FullServiceSpec extends TestService {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
+      assert(respons.contains("name"))
       assert(respons.contains("status"))
     }
   }
@@ -331,6 +374,7 @@ class FullServiceSpec extends TestService {
     Get("/streams").addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
+      assert(respons.contains("name"))
       respons.contains(streamId1)
     }
   }

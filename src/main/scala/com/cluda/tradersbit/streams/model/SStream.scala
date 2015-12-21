@@ -9,6 +9,7 @@ object StreamStatsProtocol extends DefaultJsonProtocol {
 
 case class SStream(
   id: Option[String],
+  name: String,
   exchange: String,
   currencyPair: String,
   status: Int,
@@ -23,6 +24,7 @@ case class SStream(
     import spray.json._
     import StreamStatsProtocol._
     val json = """{ "id": """" + id.get + """",""" +
+      """ "name": """" + name + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
@@ -34,6 +36,7 @@ case class SStream(
     import StreamStatsProtocol._
     import spray.json._
     val json = """{ "id": """" + id.get + """",""" +
+      """ "name": """" + name + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
@@ -49,6 +52,7 @@ case class SStream(
     import StreamStatsProtocol._
     import spray.json._
     val json = """{ "id": """" + id.get + """",""" +
+      """ "name": """" + name + """",""" +
       """ "exchange": """" + exchange + """",""" +
       """ "currencyPair": """" + currencyPair + """",""" +
       """ "subscriptionPriceUSD": """ + subscriptionPriceUSD + """,""" +
@@ -74,7 +78,7 @@ case class SStream(
   }
 
   def sStreamWithId(id: String) = {
-    SStream(Some(id), exchange, currencyPair, status, idOfLastSignal, subscriptionPriceUSD, streamPrivate, lastSignal, stats, computeComponents)
+    SStream(Some(id), name, exchange, currencyPair, status, idOfLastSignal, subscriptionPriceUSD, streamPrivate, lastSignal, stats, computeComponents)
   }
 }
 

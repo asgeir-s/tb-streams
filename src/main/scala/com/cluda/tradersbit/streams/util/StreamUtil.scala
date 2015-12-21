@@ -121,7 +121,7 @@ object StreamUtil {
       if (streamDuration == 0) {
         BigDecimal(0)
       } else {
-        ((allTimeValueExcl- BigDecimal(1)) / BigDecimal(streamDuration)) * BigDecimal(monthMs)
+        ((allTimeValueExcl - BigDecimal(1)) / BigDecimal(streamDuration)) * BigDecimal(monthMs)
       }
 
     val averageMonthlyProfitIncl: BigDecimal =
@@ -219,6 +219,7 @@ object StreamUtil {
 
     SStream(
       stream.id,
+      stream.name,
       stream.exchange,
       stream.currencyPair,
       signal.signal,
@@ -233,13 +234,13 @@ object StreamUtil {
       cComponents)
   }
 
-  def checkRoundedEqualityExceptApiKeyAndID(stream1: SStream, stream2: SStream): Boolean = {
+  def checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(stream1: SStream, stream2: SStream): Boolean = {
     if (stream1 == stream2) {
       true
     }
     else {
       stream1.streamPrivate.payoutAddress == stream2.streamPrivate.payoutAddress &&
-      //stream1.streamPrivate.apiKey == stream2.streamPrivate.apiKey &&
+        //stream1.streamPrivate.apiKey == stream2.streamPrivate.apiKey &&
         stream1.streamPrivate.topicArn == stream2.streamPrivate.topicArn &&
         stream1.computeComponents == stream2.computeComponents &&
         stream1.currencyPair == stream2.currencyPair &&

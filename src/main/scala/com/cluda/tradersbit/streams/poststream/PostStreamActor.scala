@@ -73,7 +73,7 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
     case newStream: NewStream =>
       val s = sender()
 
-      val newSStream = SStream(None, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD,
+      val newSStream = SStream(None, newStream.name, newStream.exchange, newStream.currencyPair, 0, 0, newStream.subscriptionPriceUSD,
         StreamPrivate("none", "none", newStream.payoutAddress), lastSignal = None)
 
       // add stream to the database and get id

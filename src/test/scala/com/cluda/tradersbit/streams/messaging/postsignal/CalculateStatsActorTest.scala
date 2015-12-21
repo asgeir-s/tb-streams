@@ -40,7 +40,7 @@ class CalculateStatsActorTest extends MessagingTest {
     val responds = asker.expectMsgType[SStream]
     //println("responds stream: " + responds.privateJson)
     //println(TestData.mathStream2actor)
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream2actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(responds, TestData.mathStream2actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -49,7 +49,7 @@ class CalculateStatsActorTest extends MessagingTest {
     val asker = TestProbe()
     asker.send(actor, Seq(TestData.signalSeqMath(4)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream3actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(responds, TestData.mathStream3actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -59,7 +59,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(3), TestData.signalSeqMath(2), TestData.signalSeqMath(1)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream6actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(responds, TestData.mathStream6actor))
   }
 
   "[math test] CalculateStatsActor" should
@@ -69,7 +69,7 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(0)))
     val responds = asker.expectMsgType[SStream]
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(responds, TestData.mathStream7actor))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(responds, TestData.mathStream7actor))
   }
 
   "when it receive a signal that has a id smaller then the last processed signal it" should

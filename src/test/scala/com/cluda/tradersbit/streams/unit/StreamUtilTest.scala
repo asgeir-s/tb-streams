@@ -30,22 +30,22 @@ class StreamUtilTest extends UnitTest {
   "[math test] updateStreamWitheNewSignal" should
     "tak a 'SStream' and a new signal, and return a 'SStream' updated with the new signal" in {
     val newSStream1 = StreamUtil.updateStreamWitheNewSignal(TestData.mathStream1, TestData.signalSeqMath(5))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream1, TestData.mathStream2))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream1, TestData.mathStream2))
 
     val newSStream2 = StreamUtil.updateStreamWitheNewSignal(newSStream1, TestData.signalSeqMath(4))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream2, TestData.mathStream3))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream2, TestData.mathStream3))
 
     val newSStream3 = StreamUtil.updateStreamWitheNewSignal(newSStream2, TestData.signalSeqMath(3))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream3, TestData.mathStream4))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream3, TestData.mathStream4))
 
     val newSStream4 = StreamUtil.updateStreamWitheNewSignal(newSStream3, TestData.signalSeqMath(2))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream4, TestData.mathStream5))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream4, TestData.mathStream5))
 
     val newSStream5 = StreamUtil.updateStreamWitheNewSignal(newSStream4, TestData.signalSeqMath(1))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream5, TestData.mathStream6))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream5, TestData.mathStream6))
 
     val newSStream6 = StreamUtil.updateStreamWitheNewSignal(newSStream5, TestData.signalSeqMath(0))
-    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndID(newSStream6, TestData.mathStream7))
+    assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(newSStream6, TestData.mathStream7))
 
   }
 }

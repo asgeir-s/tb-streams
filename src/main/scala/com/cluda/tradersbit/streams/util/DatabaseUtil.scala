@@ -49,6 +49,7 @@ object DatabaseUtil {
     import SignalJsonProtocol._
     table.put(
       stream.id.get,
+      "name" -> stream.name,
       "exchange" -> stream.exchange,
       "currencyPair" -> stream.currencyPair,
       "apiKeyId" -> stream.streamPrivate.apiKeyId,
@@ -87,7 +88,7 @@ object DatabaseUtil {
       "maxDDMax" -> stream.computeComponents.maxDDMax,
 
       "lastSignal" -> {
-        if(lastSignal.isDefined){
+        if (lastSignal.isDefined) {
           lastSignal.get.toJson.compactPrint
         }
         else {
@@ -120,7 +121,13 @@ object DatabaseUtil {
     table.get(potensialId) match {
       case None =>
         // id is available
-        promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId), None))
+        if (table.scan(Seq("name" -> cond.eq(stream.name))).isEmpty) {
+          // name is available
+          promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId), None))
+        }
+        else {
+          promie.failure(new Exception("name is already in use."))
+        }
       case _ =>
         // id is used
         promie.failure(new Exception("the UUID potensialId assign is already in use."))
@@ -173,6 +180,7 @@ object DatabaseUtil {
 
     val stream = SStream(
       id = Some(attrMap("id")),
+      name = attrMap("name"),
       exchange = attrMap("exchange"),
       currencyPair = attrMap("currencyPair"),
       status = attrMap("status").toInt,
