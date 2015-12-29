@@ -41,7 +41,8 @@ Microservice used in the tradersbit project.
 	SIGNALS_SERVICE_ADDRESS (default 'none')
 	LOG_LEVEL (default 'DEBUG')
 	AWS_LAMBDA_NOTIFY_EMAIL_ARN
-	
+	SERVICE_APIKEY (default 'none')
+
 	optional(initialized for testing and automatically provided by AWS):
 	RDS_HOSTNAME
 	RDS_PORT
@@ -50,6 +51,7 @@ Microservice used in the tradersbit project.
 	RDS_PASSWORD
 	
 ### Test Parameters
+    SERVICE_APIKEY=secret
     LOG_LEVEL=DEBUG
     AWS_SECRET_ACCESS_KEY=PPwA9sj77iCb0iyaySTiQi7wVhUB13Iwv6pYUSrc
     AWS_ACCESS_KEY_ID=AKIAJPBHJ6UH233F2KKA

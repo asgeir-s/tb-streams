@@ -14,7 +14,7 @@ class FullServiceSpec extends TestService {
   var streamId1 = ""
   var streamId2 = ""
   def globalRequestIDHeader() = RawHeader("Global-Request-ID", UUID.randomUUID().toString)
-
+  val authorizationHeader = RawHeader("Authorization", "apikey secret")
 
   it should "responds accept the new stream and return the id" in {
     import spray.json._
@@ -29,7 +29,7 @@ class FullServiceSpec extends TestService {
         | "currencyPair": "btcUSD",
         | "payoutAddress": "publishers-bitcoin-address",
         | "subscriptionPriceUSD": 5
-        |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+        |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
@@ -46,7 +46,7 @@ class FullServiceSpec extends TestService {
         | "currencyPair": "btcUSD",
         | "payoutAddress": "publishers-bitcoin-address",
         | "subscriptionPriceUSD": 10
-        |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+        |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
@@ -68,7 +68,7 @@ class FullServiceSpec extends TestService {
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
           | "subscriptionPriceUSD": 5
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
@@ -84,7 +84,7 @@ class FullServiceSpec extends TestService {
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
           | "subscriptionPriceUSD": 10
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe InternalServerError
       val respons = responseAs[String]
       println(respons)
@@ -103,7 +103,7 @@ class FullServiceSpec extends TestService {
           |  "value": 100,
           |  "signal": 1
           |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -128,7 +128,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -161,7 +161,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -197,7 +197,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 0
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
       val respons = responseAs[String]
       assert(respons.contains("Invalid sequence of signals"))
@@ -228,7 +228,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -245,7 +245,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
     }
   }
@@ -260,7 +260,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": 1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NoContent
     }
   }
@@ -275,7 +275,7 @@ class FullServiceSpec extends TestService {
         |  "value": 100,
         |  "signal": -1
         |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Conflict
       val respons = responseAs[String]
     }
@@ -289,7 +289,7 @@ class FullServiceSpec extends TestService {
         |   "streams": ["$streamId1"]
         |}
       """.stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -306,7 +306,7 @@ class FullServiceSpec extends TestService {
         |   "infoLevel": "auth"
         |}
       """.stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -323,7 +323,7 @@ class FullServiceSpec extends TestService {
         |   "infoLevel": "auth"
         |}
       """.stripMargin
-      ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -333,7 +333,7 @@ class FullServiceSpec extends TestService {
          |   "streams": ["fackestream"]
          |}
       """.stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -350,7 +350,7 @@ class FullServiceSpec extends TestService {
           |"value": 1.0000000000,
           |"signal": 0
           |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
@@ -364,14 +364,14 @@ class FullServiceSpec extends TestService {
           |"value": 1.0000000000,
           |"signal": 1
           |}]""".stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
   }
 
   it should "be possible to get all streams" in {
-    Get("/streams").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Get("/streams").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("name"))
@@ -380,7 +380,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "be possible to change the subscription price" in {
-    Post(s"/streams/$streamId1/subscription-price", "4.66").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/$streamId1/subscription-price", "4.66").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
@@ -390,13 +390,13 @@ class FullServiceSpec extends TestService {
          |   "streams": ["$streamId1"]
          |}
       """.stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("4.66"))
     }
 
-    Post(s"/streams/$streamId1/subscription-price", "40.33").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Post(s"/streams/$streamId1/subscription-price", "40.33").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
@@ -406,7 +406,7 @@ class FullServiceSpec extends TestService {
          |   "streams": ["$streamId1"]
          |}
       """.stripMargin
-    ).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("4.66"))
@@ -422,7 +422,7 @@ class FullServiceSpec extends TestService {
       s"""{
           | "streams": ["$streamId1"],
           | "infoLevel": "public"
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("status"))
@@ -437,7 +437,7 @@ class FullServiceSpec extends TestService {
     Post("/streams/get",
       s"""{
           | "streams": ["$streamId1"]
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(!respons.contains("status"))
@@ -454,7 +454,7 @@ class FullServiceSpec extends TestService {
           | "streams": ["$streamId1"],
           | "infoLevel": "auth"
           |
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("status"))
@@ -471,7 +471,7 @@ class FullServiceSpec extends TestService {
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
           | "infoLevel": "auth"
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
 
@@ -488,7 +488,7 @@ class FullServiceSpec extends TestService {
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
           | "infoLevel": "public"
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
 
@@ -506,7 +506,7 @@ class FullServiceSpec extends TestService {
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
           | "infoLevel": "auth"
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
 
@@ -525,7 +525,7 @@ class FullServiceSpec extends TestService {
       s"""{
           | "streams": ["$streamId1", "$streamId2"],
           | "infoLevel": "private"
-          |}""".stripMargin).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
 
@@ -538,7 +538,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "for a single stream be possible to do a GET request to get the stream info as json without private info" in {
-    Get(s"/streams/$streamId1").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Get(s"/streams/$streamId1").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
@@ -548,7 +548,7 @@ class FullServiceSpec extends TestService {
   }
 
   it should "for a single stream be possible to do a GET request to get the stream info as json private info" in {
-    Get(s"/streams/$streamId1?private=true").addHeader(globalRequestIDHeader) ~> routes ~> check {
+    Get(s"/streams/$streamId1?private=true").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains(streamId1))
