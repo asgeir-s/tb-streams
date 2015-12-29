@@ -22,6 +22,7 @@ class MissingSignalsActor(globalRequestID: String, streamID: String) extends Act
   val config = ConfigFactory.load()
   val signalsHost = config.getString("microservices.signals")
   val signalsPort = config.getInt("microservices.signalsPort")
+  private val authorizationHeader = RawHeader("Authorization", "apikey " + config.getString("microservices.signalsApiKey"))
 
   def getSignalsFromId(id: Long): Future[Seq[Signal]] = {
     val promise = Promise[Seq[Signal]]()
@@ -31,7 +32,7 @@ class MissingSignalsActor(globalRequestID: String, streamID: String) extends Act
 
     val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
     val path = "/streams/" + streamID + "/signals?fromId=" + id
-    val request = HttpRequest(GET, uri = path).addHeader(RawHeader("Global-Request-ID", globalRequestID))
+    val request = HttpRequest(GET, uri = path).addHeader(authorizationHeader).addHeader(RawHeader("Global-Request-ID", globalRequestID))
     log.info(s"[$globalRequestID]: (StreamID: $streamID): Sends request: " + request.toString)
     Source.single(request).via(conn).runWith(Sink.head[HttpResponse]).map { x =>
       Unmarshal(x.entity).to[String].map { body =>
