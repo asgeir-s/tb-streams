@@ -12,8 +12,10 @@ case class Signal(
   timestamp: Long,
   price: BigDecimal,
   change: BigDecimal,
-  value: BigDecimal)
+  value: BigDecimal,
+  changeInclFee: BigDecimal,
+  valueInclFee: BigDecimal)
 
 object SignalJsonProtocol extends DefaultJsonProtocol {
-  implicit val signalFormat = jsonFormat6(Signal)
+  implicit val signalFormat = jsonFormat8(Signal)
 }

@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 
 class CalculateStatsActorTest extends MessagingTest {
 
-  val testTableName = "calculateStatsActorTest"
+  val testTableName = "calculateStatsActorTest" + UUID.randomUUID().toString
   var testStreamId = ""
   def globalRequestID() = UUID.randomUUID().toString
 
@@ -89,7 +89,7 @@ class CalculateStatsActorTest extends MessagingTest {
     val asker = TestProbe()
 
     assert(underlyingActor.context.children.isEmpty)
-    asker.send(actor, Seq(Signal(8, 1, TestData.timestamp + 10, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5))))
+    asker.send(actor, Seq(Signal(8, 1, TestData.timestamp + 10, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5), BigDecimal(0.5-0.002), BigDecimal(1.499))))
     assert(underlyingActor.context.children.size == 1)
   }
 

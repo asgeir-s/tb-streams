@@ -101,7 +101,9 @@ class FullServiceSpec extends TestService {
           |  "change": 0,
           |  "id": 1,
           |  "value": 100,
-          |  "signal": 1
+          |  "signal": 1,
+          |  "valueInclFee": 98,
+          |  "changeInclFee": -0.002
           |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
@@ -118,7 +120,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 2,
         |  "value": 100,
-        |  "signal": 0
+        |  "signal": 0,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -126,7 +130,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 3,
         |  "value": 100,
-        |  "signal": -1
+        |  "signal": -1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
@@ -135,7 +141,7 @@ class FullServiceSpec extends TestService {
     }
   }
 
-  it should "responds with 'Accepted' and return the new stream object when three signals is posted ina out of order sequence" in {
+  it should "responds with 'Accepted' and return the new stream object when three signals is posted in a out of order sequence" in {
     Post(s"/streams/$streamId1/signals",
       """[{
         |  "timestamp": 1432122282747,
@@ -143,7 +149,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 6,
         |  "value": 100,
-        |  "signal": 0
+        |  "signal": 0,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -151,7 +159,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 4,
         |  "value": 100,
-        |  "signal": 0
+        |  "signal": 0,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -159,7 +169,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 5,
         |  "value": 100,
-        |  "signal": -1
+        |  "signal": -1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
@@ -179,7 +191,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 7,
         |  "value": 100,
-        |  "signal": -1
+        |  "signal": -1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -187,7 +201,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 8,
         |  "value": 100,
-        |  "signal": 1
+        |  "signal": 1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -195,7 +211,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 9,
         |  "value": 100,
-        |  "signal": 0
+        |  "signal": 0,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
@@ -210,7 +228,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 7,
         |  "value": 100,
-        |  "signal": -1
+        |  "signal": -1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -218,7 +238,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 8,
         |  "value": 100,
-        |  "signal": 0
+        |  "signal": 0,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |},
         |{
         |  "timestamp": 1432122282747,
@@ -226,7 +248,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 9,
         |  "value": 100,
-        |  "signal": 1
+        |  "signal": 1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
@@ -243,7 +267,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 10,
         |  "value": 100,
-        |  "signal": 1
+        |  "signal": 1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotAcceptable
@@ -258,7 +284,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 1,
         |  "value": 100,
-        |  "signal": 1
+        |  "signal": 1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NoContent
@@ -273,7 +301,9 @@ class FullServiceSpec extends TestService {
         |  "change": 0,
         |  "id": 1,
         |  "value": 100,
-        |  "signal": -1
+        |  "signal": -1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
         |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Conflict
@@ -348,7 +378,9 @@ class FullServiceSpec extends TestService {
           |"change":0E-10,
           |"id":10,
           |"value": 1.0000000000,
-          |"signal": 0
+          |"signal": 0,
+          |"valueInclFee": 98,
+          |"changeInclFee": -0.002
           |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
@@ -362,7 +394,9 @@ class FullServiceSpec extends TestService {
           |"change":0E-10,
           |"id":11,
           |"value": 1.0000000000,
-          |"signal": 1
+          |"signal": 1,
+          |"valueInclFee": 98,
+          |"changeInclFee": -0.002
           |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted

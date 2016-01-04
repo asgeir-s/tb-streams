@@ -8,9 +8,9 @@ object TestData {
 
 
   val timestamp = System.currentTimeMillis()
-  val signal1 = Signal(1, 1, timestamp, BigDecimal(200), BigDecimal(0), BigDecimal(0))
-  val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1))
-  val signalminus1 = Signal(3, -1, timestamp, BigDecimal(200), BigDecimal(-0.5), BigDecimal(0))
+  val signal1 = Signal(1, 1, timestamp, BigDecimal(200), BigDecimal(0), BigDecimal(0), BigDecimal(-0.002), BigDecimal(0))
+  val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1), BigDecimal(-0.002), BigDecimal(0.998))
+  val signalminus1 = Signal(3, -1, timestamp, BigDecimal(200), BigDecimal(-0.5), BigDecimal(0), BigDecimal(-0.502), BigDecimal(0))
 
   val freshStream = SStream(None, "freshStream", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
 
@@ -46,29 +46,29 @@ object TestData {
 
 
   val signalSeq = Seq(
-    Signal(13, 1, System.currentTimeMillis(), BigDecimal(234.453), BigDecimal(0), BigDecimal(100)),
-    Signal(12, 0, System.currentTimeMillis() - 10000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100)),
-    Signal(11, 1, System.currentTimeMillis() - 20000, BigDecimal(234.453), BigDecimal(0), BigDecimal(100)),
-    Signal(10, 0, System.currentTimeMillis() - 30000, BigDecimal(224.453), BigDecimal(0), BigDecimal(100)),
-    Signal(9, -1, System.currentTimeMillis() - 40000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100)),
-    Signal(8, 0, System.currentTimeMillis() - 50000, BigDecimal(264.453), BigDecimal(0), BigDecimal(100)),
-    Signal(7, -1, System.currentTimeMillis() - 60000, BigDecimal(184.453), BigDecimal(0), BigDecimal(100)),
-    Signal(6, 0, System.currentTimeMillis() - 70000, BigDecimal(154.453), BigDecimal(0), BigDecimal(100)),
-    Signal(5, 1, System.currentTimeMillis() - 80000, BigDecimal(194.453), BigDecimal(0), BigDecimal(100)),
-    Signal(4, 0, System.currentTimeMillis() - 90000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100)),
-    Signal(3, 1, System.currentTimeMillis() - 100000, BigDecimal(304.453), BigDecimal(0), BigDecimal(100)),
-    Signal(2, 0, System.currentTimeMillis() - 110000, BigDecimal(404.453), BigDecimal(0), BigDecimal(100)),
-    Signal(1, 0, System.currentTimeMillis() - 110000, BigDecimal(404.453), BigDecimal(0), BigDecimal(100))
+    Signal(13, 1, System.currentTimeMillis(), BigDecimal(234.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(12, 0, System.currentTimeMillis() - 10000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(11, 1, System.currentTimeMillis() - 20000, BigDecimal(234.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(10, 0, System.currentTimeMillis() - 30000, BigDecimal(224.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(9, -1, System.currentTimeMillis() - 40000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(8, 0, System.currentTimeMillis() - 50000, BigDecimal(264.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(7, -1, System.currentTimeMillis() - 60000, BigDecimal(184.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(6, 0, System.currentTimeMillis() - 70000, BigDecimal(154.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(5, 1, System.currentTimeMillis() - 80000, BigDecimal(194.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(4, 0, System.currentTimeMillis() - 90000, BigDecimal(254.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(3, 1, System.currentTimeMillis() - 100000, BigDecimal(304.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(2, 0, System.currentTimeMillis() - 110000, BigDecimal(404.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(1, 0, System.currentTimeMillis() - 110000, BigDecimal(404.453), BigDecimal(0), BigDecimal(100), BigDecimal(-0.002), BigDecimal(99.8))
   )
 
 
   val signalSeqMath = Seq(
-    Signal(6, 0, timestamp - monthMs*1, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5)),
-    Signal(5, 1, timestamp - monthMs*2, BigDecimal(650), BigDecimal(0), BigDecimal(1)),
-    Signal(4, 0, timestamp - monthMs*3, BigDecimal(450), BigDecimal(-0.5), BigDecimal(1)),
-    Signal(3, -1, timestamp - monthMs*4, BigDecimal(300), BigDecimal(0), BigDecimal(2)),
-    Signal(2, 0, timestamp - monthMs*5, BigDecimal(200), BigDecimal(1), BigDecimal(2)),
-    Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0), BigDecimal(1))
+    Signal(6, 0, timestamp - monthMs*1, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5), BigDecimal(-0.498), BigDecimal(1.498)),
+    Signal(5, 1, timestamp - monthMs*2, BigDecimal(650), BigDecimal(0), BigDecimal(1), BigDecimal(-0.002), BigDecimal(0.998)),
+    Signal(4, 0, timestamp - monthMs*3, BigDecimal(450), BigDecimal(-0.5), BigDecimal(1), BigDecimal(-0.502), BigDecimal(49.8)),
+    Signal(3, -1, timestamp - monthMs*4, BigDecimal(300), BigDecimal(0), BigDecimal(2), BigDecimal(-0.002), BigDecimal(99.8)),
+    Signal(2, 0, timestamp - monthMs*5, BigDecimal(200), BigDecimal(1), BigDecimal(2), BigDecimal(1-0.002), BigDecimal(199.6)),
+    Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0), BigDecimal(1), BigDecimal(-0.002), BigDecimal(99.8))
   )
 
   val mathStream7 = SStream(Some("math-test"),"mathStream7" , "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),

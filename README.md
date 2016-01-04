@@ -51,6 +51,7 @@ Microservice used in the tradersbit project.
 	RDS_PASSWORD
 	
 ### Test Parameters
+    AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:tbLambdaBackend-email:development
     SERVICE_APIKEY=secret
     LOG_LEVEL=DEBUG
     AWS_SECRET_ACCESS_KEY=PPwA9sj77iCb0iyaySTiQi7wVhUB13Iwv6pYUSrc
