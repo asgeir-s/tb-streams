@@ -13,8 +13,8 @@ object StreamUtil {
   val yearMs: Long = sixMonthsMs * 2
 
   def updateStreamWitheNewSignal(stream: SStream, signal: Signal): SStream = {
-    val isProfitable = signal.change > 0
-    val isLosing = signal.change < 0
+    val isProfitable = signal.changeInclFee > 0
+    val isLosing = signal.changeInclFee < 0
 
     val firstPrice =
       if (stream.stats.numberOfSignals == 0) {
@@ -24,8 +24,7 @@ object StreamUtil {
         None
       }
 
-    val allTimeValueIncl: BigDecimal =
-      (stream.stats.allTimeValueIncl - BigDecimal(0.0025)) * (BigDecimal(1) + signal.change)
+    val allTimeValueIncl: BigDecimal = signal.valueInclFee
 
     val allTimeValueExcl = signal.value
 
@@ -60,7 +59,7 @@ object StreamUtil {
 
     val accumulatedProfit = {
       if (isProfitable) {
-        Some(stream.stats.accumulatedProfit + signal.change)
+        Some(stream.stats.accumulatedProfit + signal.changeInclFee)
       }
       else {
         None
@@ -77,7 +76,7 @@ object StreamUtil {
 
     val accumulatedLoss = {
       if (isLosing) {
-        Some(stream.stats.accumulatedLoss - signal.change)
+        Some(stream.stats.accumulatedLoss - signal.changeInclFee)
       }
       else {
         None
@@ -87,16 +86,16 @@ object StreamUtil {
     // max draw down
     val cComponents: ComputeComponents =
       if (stream.stats.numberOfSignals == 0) {
-        ComputeComponents(signal.value, signal.value, 1)
+        ComputeComponents(signal.valueInclFee, signal.valueInclFee, 1)
       }
-      else if (signal.value > stream.computeComponents.maxDDMax) {
-        val maxDDMax = signal.value
+      else if (signal.valueInclFee > stream.computeComponents.maxDDMax) {
+        val maxDDMax = signal.valueInclFee
         ComputeComponents(stream.computeComponents.maxDDPrevMax, stream.computeComponents.maxDDPrevMin, maxDDMax)
-      } else if ((stream.computeComponents.maxDDMax - signal.value) >
+      } else if ((stream.computeComponents.maxDDMax - signal.valueInclFee) >
         (stream.computeComponents.maxDDPrevMax - stream.computeComponents.maxDDPrevMin)) {
 
         val maxDDPrevMax = stream.computeComponents.maxDDMax
-        val maxDDPrevMin = signal.value
+        val maxDDPrevMin = signal.valueInclFee
         ComputeComponents(maxDDPrevMax, maxDDPrevMin, stream.computeComponents.maxDDMax)
       }
       else {
@@ -180,7 +179,6 @@ object StreamUtil {
       } else {
         accumulatedProfit.getOrElse(stream.stats.accumulatedProfit) /
           accumulatedLoss.getOrElse(stream.stats.accumulatedLoss)
-
       }
 
     val buyAndHoldChange: BigDecimal =

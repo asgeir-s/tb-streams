@@ -8,8 +8,8 @@ object TestData {
 
 
   val timestamp = System.currentTimeMillis()
-  val signal1 = Signal(1, 1, timestamp, BigDecimal(200), BigDecimal(0), BigDecimal(0), BigDecimal(-0.002), BigDecimal(0))
-  val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1), BigDecimal(-0.002), BigDecimal(0.998))
+  val signal1 = Signal(1, 1, timestamp, BigDecimal(200), BigDecimal(0.002), BigDecimal(0), BigDecimal(0), BigDecimal(0))
+  val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1), BigDecimal(1-0.002), BigDecimal(0.998))
   val signalminus1 = Signal(3, -1, timestamp, BigDecimal(200), BigDecimal(-0.5), BigDecimal(0), BigDecimal(-0.502), BigDecimal(0))
 
   val freshStream = SStream(None, "freshStream", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
@@ -63,12 +63,12 @@ object TestData {
 
 
   val signalSeqMath = Seq(
-    Signal(6, 0, timestamp - monthMs*1, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5), BigDecimal(-0.498), BigDecimal(1.498)),
-    Signal(5, 1, timestamp - monthMs*2, BigDecimal(650), BigDecimal(0), BigDecimal(1), BigDecimal(-0.002), BigDecimal(0.998)),
-    Signal(4, 0, timestamp - monthMs*3, BigDecimal(450), BigDecimal(-0.5), BigDecimal(1), BigDecimal(-0.502), BigDecimal(49.8)),
-    Signal(3, -1, timestamp - monthMs*4, BigDecimal(300), BigDecimal(0), BigDecimal(2), BigDecimal(-0.002), BigDecimal(99.8)),
-    Signal(2, 0, timestamp - monthMs*5, BigDecimal(200), BigDecimal(1), BigDecimal(2), BigDecimal(1-0.002), BigDecimal(199.6)),
-    Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0), BigDecimal(1), BigDecimal(-0.002), BigDecimal(99.8))
+    Signal(6, 0, timestamp - monthMs*1, BigDecimal(975), BigDecimal(0.5), BigDecimal(1.5), BigDecimal(0.498), BigDecimal(1.5-0.002-0.002-0.002-0.002-0.002)),
+    Signal(5, 1, timestamp - monthMs*2, BigDecimal(650), BigDecimal(0.002), BigDecimal(1), BigDecimal(0), BigDecimal(1-0.002-0.002-0.002-0.002)),
+    Signal(4, 0, timestamp - monthMs*3, BigDecimal(450), BigDecimal(-0.5), BigDecimal(1), BigDecimal(-0.502), BigDecimal(1-0.002-0.002-0.002)),
+    Signal(3, -1, timestamp - monthMs*4, BigDecimal(300), BigDecimal(0.002), BigDecimal(2), BigDecimal(0), BigDecimal(2-0.002-0.002)),
+    Signal(2, 0, timestamp - monthMs*5, BigDecimal(200), BigDecimal(1), BigDecimal(2), BigDecimal(1-0.002), BigDecimal(2-0.002)),
+    Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0.002), BigDecimal(1), BigDecimal(0), BigDecimal(1))
   )
 
   val mathStream7 = SStream(Some("math-test"),"mathStream7" , "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
@@ -80,27 +80,27 @@ object TestData {
       numberOfClosedTrades = 3,
       numberOfProfitableTrades = 2,
       numberOfLoosingTrades = 1,
-      accumulatedProfit = 1.5,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.3333333333333333333333333333333333,
+      accumulatedProfit = 1.496,
+      accumulatedLoss = 0.502,
+      averageTrade = 0.3313333333333333333333333333333333,
       partWinningTrades = 0.6666666666666666666666666666666667,
       partLoosingTrades = 0.3333333333333333333333333333333333,
-      profitFactor = 3,
+      profitFactor = 2.980079681274900398406374501992032,
       buyAndHoldChange = 8.75,
-      averageWinningTrade = 0.75,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = 0.09625,
+      averageWinningTrade = 0.748,
+      averageLoosingTrade = 0.502,
+      averageMonthlyProfitIncl = 0.09799999999999999999999999999999999,
       averageMonthlyProfitExcl = 0.1,
       monthsOfTrading = 5,
-      maxDrawDown = 0.5,
+      maxDrawDown = 0.5035035035035035035035035035035035,
       firstPrice = 100,
       allTimeValueExcl = 1.5,
-      allTimeValueIncl = 1.48125
+      allTimeValueIncl = 1.49
     ),
     ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
+      maxDDPrevMax = 1.998,
+      maxDDPrevMin = 0.992,
+      maxDDMax = 1.998
     ))
 
   val mathStream6 = SStream(Some("math-test"), "mathStream6", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
@@ -112,27 +112,27 @@ object TestData {
       numberOfClosedTrades = 2,
       numberOfProfitableTrades = 1,
       numberOfLoosingTrades = 1,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.25,
+      accumulatedProfit = 0.998,
+      accumulatedLoss = 0.502,
+      averageTrade = 0.248,
       partWinningTrades = 0.5,
       partLoosingTrades = 0.5,
-      profitFactor = 2,
+      profitFactor = 1.988047808764940239043824701195219,
       buyAndHoldChange = 5.5,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = -0.0025,
+      averageWinningTrade = 0.998,
+      averageLoosingTrade = 0.502,
+      averageMonthlyProfitIncl = -0.002,
       averageMonthlyProfitExcl = 0,
       monthsOfTrading = 4,
-      maxDrawDown = 0.5,
+      maxDrawDown = 0.5035035035035035035035035035035035,
       firstPrice = 100,
       allTimeValueExcl = 1,
-      allTimeValueIncl = 0.99
+      allTimeValueIncl = 0.992
     ),
     ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
+      maxDDPrevMax = 1.998,
+      maxDDPrevMin = 0.992,
+      maxDDMax = 1.998
     ))
 
 
@@ -145,27 +145,27 @@ object TestData {
       numberOfClosedTrades = 2,
       numberOfProfitableTrades = 1,
       numberOfLoosingTrades = 1,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.25,
+      accumulatedProfit = 0.998,
+      accumulatedLoss = 0.502,
+      averageTrade = 0.248,
       partWinningTrades = 0.5,
       partLoosingTrades = 0.5,
-      profitFactor = 2,
+      profitFactor = 1.988047808764940239043824701195219,
       buyAndHoldChange = 3.5,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = -0.0025,
+      averageWinningTrade = 0.998,
+      averageLoosingTrade = 0.502,
+      averageMonthlyProfitIncl = -0.002,
       averageMonthlyProfitExcl = 0,
       monthsOfTrading = 3,
-      maxDrawDown = 0.5,
+      maxDrawDown = 0.5025025025025025025025025025025025,
       firstPrice = 100,
       allTimeValueExcl = 1,
-      allTimeValueIncl = 0.9925
+      allTimeValueIncl = 0.994
     ),
     ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
+      maxDDPrevMax = 1.998,
+      maxDDPrevMin = 0.994,
+      maxDDMax = 1.998
     ))
 
   val mathStream4 = SStream(Some("math-test"), "mathStream4", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
@@ -177,27 +177,27 @@ object TestData {
       numberOfClosedTrades = 1,
       numberOfProfitableTrades = 1,
       numberOfLoosingTrades = 0,
-      accumulatedProfit = 1,
+      accumulatedProfit = 0.998,
       accumulatedLoss = 0,
-      averageTrade = 1,
+      averageTrade = 0.998,
       partWinningTrades = 1,
       partLoosingTrades = 0,
       profitFactor = 0,
       buyAndHoldChange = 2,
-      averageWinningTrade = 1,
+      averageWinningTrade = 0.998,
       averageLoosingTrade = 0,
-      averageMonthlyProfitIncl = 0.49375,
+      averageMonthlyProfitIncl = 0.498,
       averageMonthlyProfitExcl = 0.5,
       monthsOfTrading = 2,
-      maxDrawDown = 0,
+      maxDrawDown = 0.001001001001001001001001001001001001,
       firstPrice = 100,
       allTimeValueExcl = 2,
-      allTimeValueIncl = 1.9875
+      allTimeValueIncl = 1.996
     ),
     ComputeComponents(
-      maxDDPrevMax = 1,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
+      maxDDPrevMax = 1.998,
+      maxDDPrevMin = 1.996,
+      maxDDMax = 1.998
     ))
 
 
@@ -210,27 +210,27 @@ object TestData {
       numberOfClosedTrades = 1,
       numberOfProfitableTrades = 1,
       numberOfLoosingTrades = 0,
-      accumulatedProfit = 1,
+      accumulatedProfit = 0.998,
       accumulatedLoss = 0,
-      averageTrade = 1,
+      averageTrade = 0.998,
       partWinningTrades = 1,
       partLoosingTrades = 0,
       profitFactor = 0,
       buyAndHoldChange = 1,
-      averageWinningTrade = 1,
+      averageWinningTrade = 0.998,
       averageLoosingTrade = 0,
-      averageMonthlyProfitIncl = 0.99,
+      averageMonthlyProfitIncl = 0.998,
       averageMonthlyProfitExcl = 1,
       monthsOfTrading = 1,
       maxDrawDown = 0,
       firstPrice = 100,
       allTimeValueExcl = 2,
-      allTimeValueIncl = 1.99
+      allTimeValueIncl = 1.998
     ),
     ComputeComponents(
       maxDDPrevMax = 1,
       maxDDPrevMin = 1,
-      maxDDMax = 2
+      maxDDMax = 1.998
     ))
 
 
@@ -258,7 +258,7 @@ object TestData {
       maxDrawDown = 0,
       firstPrice = 100,
       allTimeValueExcl = 1,
-      allTimeValueIncl = 0.9975
+      allTimeValueIncl = 1
     ),
     ComputeComponents(
       maxDDPrevMax = 1,
@@ -269,204 +269,28 @@ object TestData {
   val mathStream1 = SStream(Some("math-test"), "mathStream1",  "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
 
 
-
-
   // fro actor test
 
   val mathStream7actor = SStream(Some("calculateStatsActorTestStream"), "mathStream7actor", "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*1,
-      numberOfSignals = 6,
-      numberOfClosedTrades = 3,
-      numberOfProfitableTrades = 2,
-      numberOfLoosingTrades = 1,
-      accumulatedProfit = 1.5,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.3333333333333333333333333333333333,
-      partWinningTrades = 0.6666666666666666666666666666666667,
-      partLoosingTrades = 0.3333333333333333333333333333333333,
-      profitFactor = 3,
-      buyAndHoldChange = 8.75,
-      averageWinningTrade = 0.75,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = 0.09625,
-      averageMonthlyProfitExcl = 0.1,
-      monthsOfTrading = 5,
-      maxDrawDown = 0.5,
-      firstPrice = 100,
-      allTimeValueExcl = 1.5,
-      allTimeValueIncl = 1.48125
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
-    ))
+  None, mathStream7.stats, mathStream7.computeComponents)
 
   val mathStream6actor = SStream(Some("calculateStatsActorTestStream"), "mathStream6actor", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*2,
-      numberOfSignals = 5,
-      numberOfClosedTrades = 2,
-      numberOfProfitableTrades = 1,
-      numberOfLoosingTrades = 1,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.25,
-      partWinningTrades = 0.5,
-      partLoosingTrades = 0.5,
-      profitFactor = 2,
-      buyAndHoldChange = 5.5,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = -0.0025,
-      averageMonthlyProfitExcl = 0,
-      monthsOfTrading = 4,
-      maxDrawDown = 0.5,
-      firstPrice = 100,
-      allTimeValueExcl = 1,
-      allTimeValueIncl = 0.99
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
-    ))
+  None, mathStream6.stats, mathStream6.computeComponents)
 
 
   val mathStream5actor = SStream(Some("calculateStatsActorTestStream"), "mathStream5actor", "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*3,
-      numberOfSignals = 4,
-      numberOfClosedTrades = 2,
-      numberOfProfitableTrades = 1,
-      numberOfLoosingTrades = 1,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0.5,
-      averageTrade = 0.25,
-      partWinningTrades = 0.5,
-      partLoosingTrades = 0.5,
-      profitFactor = 2,
-      buyAndHoldChange = 3.5,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0.5,
-      averageMonthlyProfitIncl = -0.0025,
-      averageMonthlyProfitExcl = 0,
-      monthsOfTrading = 3,
-      maxDrawDown = 0.5,
-      firstPrice = 100,
-      allTimeValueExcl = 1,
-      allTimeValueIncl = 0.9925
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 2,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
-    ))
+  None, mathStream5.stats, mathStream5.computeComponents)
 
   val mathStream4actor = SStream(Some("calculateStatsActorTestStream"), "mathStream4actor", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*4,
-      numberOfSignals = 3,
-      numberOfClosedTrades = 1,
-      numberOfProfitableTrades = 1,
-      numberOfLoosingTrades = 0,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0,
-      averageTrade = 1,
-      partWinningTrades = 1,
-      partLoosingTrades = 0,
-      profitFactor = 0,
-      buyAndHoldChange = 2,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0,
-      averageMonthlyProfitIncl = 0.49375,
-      averageMonthlyProfitExcl = 0.5,
-      monthsOfTrading = 2,
-      maxDrawDown = 0,
-      firstPrice = 100,
-      allTimeValueExcl = 2,
-      allTimeValueIncl = 1.9875
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 1,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
-    ))
+  None,mathStream4.stats, mathStream4.computeComponents)
 
 
   val mathStream3actor = SStream(Some("calculateStatsActorTestStream"), "mathStream3actor", "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*5,
-      numberOfSignals = 2,
-      numberOfClosedTrades = 1,
-      numberOfProfitableTrades = 1,
-      numberOfLoosingTrades = 0,
-      accumulatedProfit = 1,
-      accumulatedLoss = 0,
-      averageTrade = 1,
-      partWinningTrades = 1,
-      partLoosingTrades = 0,
-      profitFactor = 0,
-      buyAndHoldChange = 1,
-      averageWinningTrade = 1,
-      averageLoosingTrade = 0,
-      averageMonthlyProfitIncl = 0.99,
-      averageMonthlyProfitExcl = 1,
-      monthsOfTrading = 1,
-      maxDrawDown = 0,
-      firstPrice = 100,
-      allTimeValueExcl = 2,
-      allTimeValueIncl = 1.99
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 1,
-      maxDDPrevMin = 1,
-      maxDDMax = 2
-    ))
+  None, mathStream3.stats, mathStream3.computeComponents)
 
 
   val mathStream2actor = SStream(Some("calculateStatsActorTestStream"), "mathStream2actor", "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
-  None,
-    StreamStats(
-      timeOfFirstSignal = timestamp - monthMs*6,
-      timeOfLastSignal = timestamp - monthMs*6,
-      numberOfSignals = 1,
-      numberOfClosedTrades = 0,
-      numberOfProfitableTrades = 0,
-      numberOfLoosingTrades = 0,
-      accumulatedProfit = 0,
-      accumulatedLoss = 0,
-      averageTrade = 0,
-      partWinningTrades = 0,
-      partLoosingTrades = 0,
-      profitFactor = 0,
-      buyAndHoldChange = 0,
-      averageWinningTrade = 0,
-      averageLoosingTrade = 0,
-      averageMonthlyProfitIncl = 0,
-      averageMonthlyProfitExcl = 0,
-      monthsOfTrading = 0,
-      maxDrawDown = 0,
-      firstPrice = 100,
-      allTimeValueExcl = 1,
-      allTimeValueIncl = 0.9975
-    ),
-    ComputeComponents(
-      maxDDPrevMax = 1,
-      maxDDPrevMin = 1,
-      maxDDMax = 1
-    ))
+  None, mathStream2.stats, mathStream2.computeComponents)
 
   val mathStream1actor = SStream(Some("calculateStatsActorTestStream"), "mathStream1actor", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
 
