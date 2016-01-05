@@ -42,6 +42,7 @@ Microservice used in the tradersbit project.
 	LOG_LEVEL (default 'DEBUG')
 	AWS_LAMBDA_NOTIFY_EMAIL_ARN
 	SERVICE_APIKEY (default 'none')
+	MICROSERVICES_HTTPS (default 'false')
 
 	optional(initialized for testing and automatically provided by AWS):
 	RDS_HOSTNAME
@@ -51,6 +52,7 @@ Microservice used in the tradersbit project.
 	RDS_PASSWORD
 	
 ### Test Parameters
+    MICROSERVICES_HTTPS=false
     AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:tbLambdaBackend-email:development
     SERVICE_APIKEY=secret
     LOG_LEVEL=DEBUG

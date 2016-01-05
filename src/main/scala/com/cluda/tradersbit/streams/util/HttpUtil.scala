@@ -13,7 +13,6 @@ import scala.concurrent.Future
 object HttpUtil {
 
   def request(
-    implicit system: ActorSystem,
     method: HttpMethod,
     isHttps: Boolean,
     baseUri: String,
@@ -21,7 +20,7 @@ object HttpUtil {
     body: String = "",
     headers: List[HttpHeader] = List(RawHeader("Accept", "*/*")),
     params: Map[String, String] = Map()
-    ): Future[HttpResponse] = {
+    )(implicit system: ActorSystem): Future[HttpResponse] = {
     implicit val materializer = ActorMaterializer()
 
     val _outgoingConn = if (isHttps) {

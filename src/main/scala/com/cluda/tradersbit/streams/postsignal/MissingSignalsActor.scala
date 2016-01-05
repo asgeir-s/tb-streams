@@ -9,6 +9,7 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.cluda.tradersbit.streams.model.{Signal, SignalJsonProtocol}
+import com.cluda.tradersbit.streams.util.HttpUtil
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.{Future, Promise}
@@ -22,21 +23,28 @@ class MissingSignalsActor(globalRequestID: String, streamID: String) extends Act
   val config = ConfigFactory.load()
   val signalsHost = config.getString("microservices.signals")
   val signalsPort = config.getInt("microservices.signalsPort")
+  private val https = config.getBoolean("microservices.https")
   private val authorizationHeader = RawHeader("Authorization", "apikey " + config.getString("microservices.signalsApiKey"))
 
-  def getSignalsFromId(id: Long): Future[Seq[Signal]] = {
-    val promise = Promise[Seq[Signal]]()
 
+  def getSignalsFromId(id: Long): Future[Seq[Signal]] = {
     import SignalJsonProtocol._
     import spray.json._
 
-    val conn = Http().outgoingConnection(signalsHost, port = signalsPort)
+    val promise = Promise[Seq[Signal]]()
+
     val path = "/streams/" + streamID + "/signals?fromId=" + id
-    val request = HttpRequest(GET, uri = path).addHeader(authorizationHeader).addHeader(RawHeader("Global-Request-ID", globalRequestID))
-    log.info(s"[$globalRequestID]: (StreamID: $streamID): Sends request: " + request.toString)
-    Source.single(request).via(conn).runWith(Sink.head[HttpResponse]).map { x =>
+    log.info(s"[$globalRequestID]: (StreamID: $streamID): Sends request. Path: " + path)
+
+    HttpUtil.request(
+      HttpMethods.GET,
+      https,
+      signalsHost,
+      path,
+      headers = List(RawHeader("Global-Request-ID", globalRequestID), authorizationHeader)
+    ).map { x =>
       Unmarshal(x.entity).to[String].map { body =>
-          promise.success(body.parseJson.convertTo[Seq[Signal]])
+        promise.success(body.parseJson.convertTo[Seq[Signal]])
       }
     }.recover{
       case e: Throwable =>
