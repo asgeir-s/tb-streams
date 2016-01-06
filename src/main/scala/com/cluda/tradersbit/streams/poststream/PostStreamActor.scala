@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext
 class PostStreamActor(globalRequestID: String, tableName: String) extends Actor with ActorLogging {
 
   val config = ConfigFactory.load()
+  val snsRegion = config.getString("aws.sns.region")
 
   implicit val dynamoDB = DatabaseUtil.awscalaDB(ConfigFactory.load())
   implicit val ec: ExecutionContext = context.system.dispatcher
@@ -84,7 +85,7 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
 
           // create topic from id
           val snsClient: AmazonSNSClient = AwsSnsUtil.amazonSNSClient(ConfigFactory.load())
-          snsClient.setRegion(Region.getRegion(Regions.US_WEST_2))
+          snsClient.setRegion(Region.getRegion(Regions.fromName(snsRegion)))
           AwsSnsUtil.createTopic(snsClient, streamId).map { arn =>
             val result = snsClient.subscribe(arn, "lambda", config.getString("aws.lambda.notify.email"))
             if(result.getSubscriptionArn.length > 1) {

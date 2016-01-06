@@ -43,6 +43,7 @@ Microservice used in the tradersbit project.
 	AWS_LAMBDA_NOTIFY_EMAIL_ARN
 	SERVICE_APIKEY (default 'none')
 	MICROSERVICES_HTTPS (default 'false')
+	AWS_SNS_REGION (default 'none')
 
 	optional(initialized for testing and automatically provided by AWS):
 	RDS_HOSTNAME
@@ -61,6 +62,7 @@ Microservice used in the tradersbit project.
     SIGNALS_SERVICE_ADDRESS=cs-signals-staging.elasticbeanstalk.com
     AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
     AWS_DYNAMO_REGION=us-west-2
+    AWS_SNS_REGION=us-west-2
     SNS_SUBSCRIBERS=[]
     AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:tb-notify-email
 
