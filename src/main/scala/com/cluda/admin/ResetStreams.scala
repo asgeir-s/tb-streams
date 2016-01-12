@@ -21,6 +21,8 @@ object ResetStreams {
     val table = dynamoDB.table(tableName).get
     val allStreams: Seq[SStream] = DatabaseUtil.getAllStreams(table)
 
+    //backup
+
     // reset streams
     val resatStreams: Seq[SStream] = allStreams.map((stream: SStream) => {
       stream.copy(

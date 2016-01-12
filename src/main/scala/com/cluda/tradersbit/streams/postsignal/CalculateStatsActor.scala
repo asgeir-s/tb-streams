@@ -63,8 +63,7 @@ class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: 
           self ! PoisonPill
         }
         else if (!newSignals.exists(_.id == sStream.idOfLastSignal + 1) &&
-          sStream.stats.numberOfSignals > 0) {
-
+          newSignals.exists(_.id > sStream.idOfLastSignal)) {
           log.warning(s"[$globalRequestID]: (StreamID: $streamID): Received signal(s) with ID(s) that does " +
             "not include the expected next ID. The ID(s) are (all) higher then the " +
             "next expected next signal's id. Starts MissingSignalsActor to retrieve " +
