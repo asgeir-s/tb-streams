@@ -3,7 +3,7 @@ package com.cluda.tradersbit.streams.model
 import spray.json.DefaultJsonProtocol
 
 object StreamStatsProtocol extends DefaultJsonProtocol {
-  implicit val streamStatsFormat = jsonFormat22(StreamStats)
+  implicit val streamStatsFormat = jsonFormat13(StreamStats)
   implicit val streamPrivateFormat = jsonFormat3(StreamPrivate)
 }
 
@@ -95,18 +95,18 @@ case class StreamStats(
   numberOfClosedTrades: Long = 0,
   numberOfProfitableTrades: Long = 0,
   numberOfLoosingTrades: Long = 0,
-  accumulatedProfit: BigDecimal = 0,
-  accumulatedLoss: BigDecimal = 0,
-  averageTrade: BigDecimal = 0,
-  partWinningTrades: BigDecimal = 0,
-  partLoosingTrades: BigDecimal = 0,
-  profitFactor: BigDecimal = 0,
+  accumulatedProfit: BigDecimal = 0,  // do not display
+  accumulatedLoss: BigDecimal = 0,  // do not display
+  //averageTrade: BigDecimal = 0,  // remove should be computed from (numberOfClosedTrades,allTimeValueIncl)
+  //partWinningTrades: BigDecimal = 0,  // remove should be computed from (numberOfClosedTrades,numberOfProfitableTrades)
+  //partLoosingTrades: BigDecimal = 0,  // remove should be computed from (numberOfClosedTrades,numberOfLoosingTrades)
+  //profitFactor: BigDecimal = 0, // remove should be computed from (accumulatedProfit/accumulatedLoss)
   buyAndHoldChange: BigDecimal = 0,
-  averageWinningTrade: BigDecimal = 0,
-  averageLoosingTrade: BigDecimal = 0,
-  averageMonthlyProfitIncl: BigDecimal = 0,
-  averageMonthlyProfitExcl: BigDecimal = 0,
-  monthsOfTrading: BigDecimal = 0,
+  //averageWinningTrade: BigDecimal = 0, // remove should be computed from (accumulatedProfit,numberOfProfitableTrades)
+  //averageLoosingTrade: BigDecimal = 0, // remove should be computed from (accumulatedLoss,numberOfLoosingTrades)
+  //averageMonthlyProfitIncl: BigDecimal = 0, // remove should be computed from (allTimeValueIncl,timeOfFirstSignal,timeOfLastSignal)
+  //averageMonthlyProfitExcl: BigDecimal = 0, // remove should be computed from (allTimeValueExcl,timeOfFirstSignal,timeOfLastSignal)
+  //monthsOfTrading: BigDecimal = 0, // remove should be computed from (timeOfFirstSignal,timeOfLastSignal)
   maxDrawDown: BigDecimal = 0,
   allTimeValueIncl: BigDecimal = 1,
   allTimeValueExcl: BigDecimal = 1,

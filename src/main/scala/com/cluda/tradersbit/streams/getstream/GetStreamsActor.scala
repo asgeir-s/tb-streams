@@ -80,7 +80,7 @@ class GetStreamsActor(globalRequestID: String, tableName: String) extends Actor 
       }
       else {
         val table = dynamoDB.table(tableName).get
-        DatabaseUtil.getAllStreams(table).map {
+        DatabaseUtil.getAllStreamsFuture(table).map {
           case streams: Seq[SStream] =>
             log.info(s"[$globalRequestID]: Returning HttpResponds with array of all streams. Length: " + streams.length)
             s ! HttpResponse(StatusCodes.OK, entity =

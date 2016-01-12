@@ -28,7 +28,7 @@ class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: 
   }
 
   private val streamsTable: Table = dynamoDB.table(tableName).get
-  val streams = Await.result(DatabaseUtil.getStreams(streamsTable, List(streamID)), 3 seconds)
+  val streamInList = Await.result(DatabaseUtil.getStreams(streamsTable, List(streamID)), 3 seconds)
 
   override def receive: Receive = {
     case signals: Seq[Signal] =>
@@ -38,7 +38,7 @@ class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: 
       log.info(s"[$globalRequestID]: (StreamID: $streamID): Received " + signals.length + " signal(s).")
 
       //for safety
-      if (streams.isEmpty) {
+      if (streamInList.isEmpty) {
         log.error(s"[$globalRequestID]: (StreamID: $streamID): Could not find stream with id " + streamID + " in the streams-table")
         context.parent ! StreamDoesNotExistException(
           s"[$globalRequestID]: (StreamID: $streamID): Could not find stream with id " + streamID + " in the streams-table")
@@ -50,7 +50,7 @@ class CalculateStatsActor(globalRequestID: String, streamID: String, tableName: 
       }
 
       else {
-        var sStream: SStream = streams.get.last
+        var sStream: SStream = streamInList.get.last
         val newSignals = signals.filter(_.id > sStream.idOfLastSignal)
 
         if (newSignals.isEmpty) {

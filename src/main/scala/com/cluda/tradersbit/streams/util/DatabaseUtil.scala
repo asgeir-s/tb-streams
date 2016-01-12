@@ -13,8 +13,12 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 object DatabaseUtil {
 
-  def awscalaDB(config: Config): DynamoDB = {
-    implicit val region: Region = awscala.Region(config.getString("aws.dynamo.region"))
+  def awscalaDB(config: Config, regionString: Option[String] = None): DynamoDB = {
+    implicit val region: Region = regionString match {
+      case Some(regionString: String) => awscala.Region(regionString)
+      case None => awscala.Region(config.getString("aws.dynamo.region"))
+    }
+
     val awsAccessKeyId = config.getString("aws.accessKeyId")
     val awsSecretAccessKey = config.getString("aws.secretAccessKey")
 
@@ -42,9 +46,14 @@ object DatabaseUtil {
     true
   }
 
-  private def tableForcePut(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+  private def tableForcePutFuture(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
     val promise = Promise[SStream]()
+    tableForcePut(table, stream, lastSignal)
+    promise.completeWith(getStreams(table, List(stream.id.get)).map(_.get.last))
+    promise.future
+  }
 
+  def tableForcePut(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB): Unit = {
     import spray.json._
     import SignalJsonProtocol._
     table.put(
@@ -58,7 +67,6 @@ object DatabaseUtil {
 
       "idOfLastSignal" -> stream.idOfLastSignal,
       "subscriptionPriceUSD" -> stream.subscriptionPriceUSD,
-
       "status" -> stream.status,
       "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
       "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
@@ -68,16 +76,7 @@ object DatabaseUtil {
       "numberOfLoosingTrades" -> stream.stats.numberOfLoosingTrades,
       "accumulatedProfit" -> stream.stats.accumulatedProfit,
       "accumulatedLoss" -> stream.stats.accumulatedLoss,
-      "averageTrade" -> stream.stats.averageTrade,
-      "partWinningTrades" -> stream.stats.partWinningTrades,
-      "partLoosingTrades" -> stream.stats.partLoosingTrades,
-      "profitFactor" -> stream.stats.profitFactor,
       "buyAndHoldChange" -> stream.stats.buyAndHoldChange,
-      "averageWinningTrade" -> stream.stats.averageWinningTrade,
-      "averageLoosingTrade" -> stream.stats.averageLoosingTrade,
-      "averageMonthlyProfitIncl" -> stream.stats.averageMonthlyProfitIncl,
-      "averageMonthlyProfitExcl" -> stream.stats.averageMonthlyProfitExcl,
-      "monthsOfTrading" -> stream.stats.monthsOfTrading,
       "maxDrawDown" -> stream.stats.maxDrawDown,
       "allTimeValueIncl" -> stream.stats.allTimeValueIncl,
       "allTimeValueExcl" -> stream.stats.allTimeValueExcl,
@@ -96,14 +95,11 @@ object DatabaseUtil {
         }
       }
     )
-
-    promise.completeWith(getStreams(table, List(stream.id.get)).map(_.get.last))
-
-    promise.future
   }
 
+
   def updateStream(table: Table, stream: SStream, lastSignal: Signal)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
-    tableForcePut(table, stream, Some(lastSignal))
+    tableForcePutFuture(table, stream, Some(lastSignal))
   }
 
   /**
@@ -123,7 +119,7 @@ object DatabaseUtil {
         // id is available
         if (table.scan(Seq("name" -> cond.eq(stream.name))).isEmpty) {
           // name is available
-          promie.completeWith(tableForcePut(table, stream.sStreamWithId(potensialId), None))
+          promie.completeWith(tableForcePutFuture(table, stream.sStreamWithId(potensialId), None))
         }
         else {
           promie.failure(new Exception("name is already in use."))
@@ -142,38 +138,29 @@ object DatabaseUtil {
     val attrMap = streamItem.attributes.map(x => (x.name, x.value.s.getOrElse(x.value.n.getOrElse("")))).toMap
 
     val cComponents = ComputeComponents(
-      maxDDPrevMax = BigDecimal(attrMap("maxDDPrevMax")),
-      maxDDPrevMin = BigDecimal(attrMap("maxDDPrevMin")),
-      maxDDMax = BigDecimal(attrMap("maxDDMax"))
+      maxDDPrevMax = BigDecimal(attrMap.getOrElse("maxDDPrevMax", "0")),
+      maxDDPrevMin = BigDecimal(attrMap.getOrElse("maxDDPrevMin", "0")),
+      maxDDMax = BigDecimal(attrMap.getOrElse("maxDDMax", "0"))
     )
 
     val stats = StreamStats(
-      timeOfFirstSignal = attrMap("timeOfFirstSignal").toLong,
-      timeOfLastSignal = attrMap("timeOfLastSignal").toLong,
-      numberOfSignals = attrMap("numberOfSignals").toLong,
-      numberOfClosedTrades = attrMap("numberOfClosedTrades").toLong,
-      numberOfProfitableTrades = attrMap("numberOfProfitableTrades").toLong,
-      numberOfLoosingTrades = attrMap("numberOfLoosingTrades").toLong,
-      accumulatedProfit = BigDecimal(attrMap("accumulatedProfit")),
-      accumulatedLoss = BigDecimal(attrMap("accumulatedLoss")),
-      averageTrade = BigDecimal(attrMap("averageTrade")),
-      partWinningTrades = BigDecimal(attrMap("partWinningTrades")),
-      partLoosingTrades = BigDecimal(attrMap("partLoosingTrades")),
-      profitFactor = BigDecimal(attrMap("profitFactor")),
-      buyAndHoldChange = BigDecimal(attrMap("buyAndHoldChange")),
-      averageWinningTrade = BigDecimal(attrMap("averageWinningTrade")),
-      averageLoosingTrade = BigDecimal(attrMap("averageLoosingTrade")),
-      averageMonthlyProfitIncl = BigDecimal(attrMap("averageMonthlyProfitIncl")),
-      averageMonthlyProfitExcl = BigDecimal(attrMap("averageMonthlyProfitExcl")),
-      monthsOfTrading = BigDecimal(attrMap("monthsOfTrading")),
-      maxDrawDown = BigDecimal(attrMap("maxDrawDown")),
-      allTimeValueIncl = BigDecimal(attrMap("allTimeValueIncl")),
-      allTimeValueExcl = BigDecimal(attrMap("allTimeValueExcl")),
+      timeOfFirstSignal = attrMap.getOrElse("timeOfFirstSignal", "0").toLong,
+      timeOfLastSignal = attrMap.getOrElse("timeOfLastSignal", "0").toLong,
+      numberOfSignals = attrMap.getOrElse("numberOfSignals", "0").toLong,
+      numberOfClosedTrades = attrMap.getOrElse("numberOfClosedTrades", "0").toLong,
+      numberOfProfitableTrades = attrMap.getOrElse("numberOfProfitableTrades", "0").toLong,
+      numberOfLoosingTrades = attrMap.getOrElse("numberOfLoosingTrades", "0").toLong,
+      accumulatedProfit = BigDecimal(attrMap.getOrElse("accumulatedProfit", "0")),
+      accumulatedLoss = BigDecimal(attrMap.getOrElse("accumulatedLoss", "0")),
+      buyAndHoldChange = BigDecimal(attrMap.getOrElse("buyAndHoldChange", "0")),
+      maxDrawDown = BigDecimal(attrMap.getOrElse("maxDrawDown", "0")),
+      allTimeValueIncl = BigDecimal(attrMap.getOrElse("allTimeValueIncl", "0")),
+      allTimeValueExcl = BigDecimal(attrMap.getOrElse("allTimeValueExcl", "0")),
       firstPrice = BigDecimal(attrMap("firstPrice"))
     )
 
     val sPrivate = StreamPrivate(
-      apiKeyId = attrMap("apiKeyId"),
+      apiKeyId = attrMap.getOrElse("apiKeyId", ""),
       topicArn = attrMap("topicArn"),
       payoutAddress = attrMap("payoutAddress")
     )
@@ -184,8 +171,8 @@ object DatabaseUtil {
       exchange = attrMap("exchange"),
       currencyPair = attrMap("currencyPair"),
       status = attrMap("status").toInt,
-      idOfLastSignal = attrMap("idOfLastSignal").toLong,
-      subscriptionPriceUSD = BigDecimal(attrMap("subscriptionPriceUSD")),
+      idOfLastSignal = attrMap.getOrElse("idOfLastSignal", "0").toLong,
+      subscriptionPriceUSD = BigDecimal(attrMap.getOrElse("subscriptionPriceUSD", "5")),
       stats = stats,
       computeComponents = cComponents,
       streamPrivate = sPrivate,
@@ -230,7 +217,13 @@ object DatabaseUtil {
     }
   }
 
-  def getAllStreams(table: Table)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Seq[SStream]] = Future {
+  def getAllStreamsFuture(table: Table)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[Seq[SStream]] = Future {
+    getAllStreams(table)
+  }
+
+  def getAllStreams(table: Table)(implicit dynamoDB: DynamoDB): Seq[SStream] = {
     table.scan(filter = Seq()).map(itemToStream)
   }
+
+
 }

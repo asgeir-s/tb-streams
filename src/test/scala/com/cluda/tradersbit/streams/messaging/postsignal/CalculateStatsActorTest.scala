@@ -32,7 +32,7 @@ class CalculateStatsActorTest extends MessagingTest {
     Await.result(DatabaseUtil.addSnsTopicArn(table, testStreamId, "topicARN"), 5 seconds)
   }
 
-  "when it receives a signal it" should
+  "[math test] when it receives a signal it" should
     "calculate the 'Stream.Stats' and respond with the 'Stream'" in {
     val actor = TestActorRef(CalculateStatsActor.props(globalRequestID(), testStreamId, testTableName))
     val asker = TestProbe()
@@ -59,6 +59,8 @@ class CalculateStatsActorTest extends MessagingTest {
 
     asker.send(actor, Seq(TestData.signalSeqMath(3), TestData.signalSeqMath(2), TestData.signalSeqMath(1)))
     val responds = asker.expectMsgType[SStream]
+    println(responds.privateJson)
+    println(TestData.mathStream6actor.privateJson)
     assert(StreamUtil.checkRoundedEqualityExceptApiKeyAndIDAndNameAndLastSignal(responds, TestData.mathStream6actor))
   }
 
