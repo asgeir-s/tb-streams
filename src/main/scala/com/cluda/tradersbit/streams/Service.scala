@@ -11,6 +11,7 @@ import akka.http.scaladsl.server.RequestContext
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
+import com.cluda.tradersbit.streams.getapikeyid.{NewApiKeyId, GetApiKeyIdActor}
 import com.cluda.tradersbit.streams.getstream.GetStreamsActor
 import com.cluda.tradersbit.streams.model.{StreamsGetOptionsJsonProtocol, Signal, SignalJsonProtocol, StreamsGetOptions}
 import com.cluda.tradersbit.streams.postsignal.PostSignalActor
@@ -103,13 +104,22 @@ trait Service {
             } ~
               pathPrefix(Segment) { streamID =>
                 get {
-                  parameters('private.as[Boolean].?) { privateInfo =>
-                    complete {
-                      logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
-                      perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
-                        (StreamsGetOptions(List(streamID), if (privateInfo.getOrElse(false)) Some("private") else Some("public"), Some(true))))
+                  pathEndOrSingleSlash {
+                    parameters('private.as[Boolean].?) { privateInfo =>
+                      complete {
+                        logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
+                        perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
+                          (StreamsGetOptions(List(streamID), if (privateInfo.getOrElse(false)) Some("private") else Some("public"), Some(true))))
+                      }
                     }
-                  }
+                  } ~
+                    pathPrefix("apikeyid") {
+                      complete {
+                        logger.info(s"[$globalRequestID]: Recived reguest for new apiKeyId. Stream: $streamID")
+                        perRequestActor[NewApiKeyId](GetApiKeyIdActor.props(globalRequestID, streamsTableName),
+                          NewApiKeyId(streamID))
+                      }
+                    }
                 } ~
                   pathPrefix("subscription-price") {
                     post {

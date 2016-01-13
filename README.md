@@ -29,6 +29,8 @@ Microservice used in the tradersbit project.
         "streams": ["streamID1", "streamID2"],
         "infoLevel": "public" (public (this is info that can be avalibele to anyone) | auth (this is info for the publisher of the stream) | private (should not be a public endpoint, no user should get access to private info-level))
     }
+    
+    GET: /streams/'streamID'/apikeyid generates new and returns api key id (should be wraped in JWT before used for authentification)
    	
    	
 ## Environment Variables

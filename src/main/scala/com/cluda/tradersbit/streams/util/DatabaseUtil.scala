@@ -97,6 +97,12 @@ object DatabaseUtil {
     )
   }
 
+  def generateAndSetApiKeyId(table: Table, streamID: String)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[String] = Future {
+    val apiKeyId = UUID.randomUUID().toString
+    table.putAttributes(streamID, Seq("apiKeyId" -> apiKeyId))
+    apiKeyId
+  }
+
 
   def updateStream(table: Table, stream: SStream, lastSignal: Signal)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
     tableForcePutFuture(table, stream, Some(lastSignal))

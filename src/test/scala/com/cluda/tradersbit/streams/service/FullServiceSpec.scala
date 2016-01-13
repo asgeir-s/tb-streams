@@ -13,7 +13,9 @@ class FullServiceSpec extends TestService {
   override val streamsTableName: String = "postStreamSpec"
   var streamId1 = ""
   var streamId2 = ""
+
   def globalRequestIDHeader() = RawHeader("Global-Request-ID", UUID.randomUUID().toString)
+
   val authorizationHeader = RawHeader("Authorization", "apikey secret")
 
   it should "responds accept the new stream and return the id" in {
@@ -24,35 +26,35 @@ class FullServiceSpec extends TestService {
 
     Post("/streams",
       s"""{
-        | "name": "$randomName1",
-        | "exchange": "bitfinex",
-        | "currencyPair": "btcUSD",
-        | "payoutAddress": "publishers-bitcoin-address",
-        | "subscriptionPriceUSD": 5
-        |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          | "name": "$randomName1",
+          | "exchange": "bitfinex",
+          | "currencyPair": "btcUSD",
+          | "payoutAddress": "publishers-bitcoin-address",
+          | "subscriptionPriceUSD": 5
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
       assert(!respons.contains("apiKeyId"))
       streamId1 = respons.parseJson.asJsObject.fields("id").toString()
-      streamId1 = streamId1.substring(1, streamId1.length-1)
+      streamId1 = streamId1.substring(1, streamId1.length - 1)
     }
 
 
     Post("/streams",
       s"""{
-        | "name": "$randomName2",
-        | "exchange": "bitfinex",
-        | "currencyPair": "btcUSD",
-        | "payoutAddress": "publishers-bitcoin-address",
-        | "subscriptionPriceUSD": 10
-        |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+          | "name": "$randomName2",
+          | "exchange": "bitfinex",
+          | "currencyPair": "btcUSD",
+          | "payoutAddress": "publishers-bitcoin-address",
+          | "subscriptionPriceUSD": 10
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
       assert(respons.contains("id"))
       assert(!respons.contains("apiKeyId"))
       streamId2 = respons.parseJson.asJsObject.fields("id").toString()
-      streamId2 = streamId2.substring(1, streamId2.length-1)
+      streamId2 = streamId2.substring(1, streamId2.length - 1)
     }
   }
 
@@ -74,7 +76,7 @@ class FullServiceSpec extends TestService {
       assert(respons.contains("id"))
       assert(!respons.contains("apiKeyId"))
       streamId1 = respons.parseJson.asJsObject.fields("id").toString()
-      streamId1 = streamId1.substring(1, streamId1.length-1)
+      streamId1 = streamId1.substring(1, streamId1.length - 1)
     }
 
     Post("/streams",
@@ -95,16 +97,16 @@ class FullServiceSpec extends TestService {
 
   it should "responds with 'Accepted' and return the new stream object when a new signal is posted for an existing stream" in {
     Post(s"/streams/$streamId1/signals",
-        """[{
-          |  "timestamp": 1432122282747,
-          |  "price": 200.453,
-          |  "change": 0,
-          |  "id": 1,
-          |  "value": 100,
-          |  "signal": 1,
-          |  "valueInclFee": 98,
-          |  "changeInclFee": -0.002
-          |}]""".stripMargin
+      """[{
+        |  "timestamp": 1432122282747,
+        |  "price": 200.453,
+        |  "change": 0,
+        |  "id": 1,
+        |  "value": 100,
+        |  "signal": 1,
+        |  "valueInclFee": 98,
+        |  "changeInclFee": -0.002
+        |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
@@ -315,9 +317,9 @@ class FullServiceSpec extends TestService {
   it should "be possible to get the stream info as json with no secrets" in {
     Post("/streams/get",
       s"""
-        |{
-        |   "streams": ["$streamId1"]
-        |}
+         |{
+         |   "streams": ["$streamId1"]
+         |}
       """.stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
@@ -331,10 +333,10 @@ class FullServiceSpec extends TestService {
   it should "be possible to get the stream info as json with auth level info" in {
     Post(s"/streams/get",
       s"""
-        |{
-        |   "streams": ["$streamId1"],
-        |   "infoLevel": "auth"
-        |}
+         |{
+         |   "streams": ["$streamId1"],
+         |   "infoLevel": "auth"
+         |}
       """.stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
@@ -348,12 +350,12 @@ class FullServiceSpec extends TestService {
   it should "respondse with NoContent when trying to retreive a stream that does not exist" in {
     Post("/streams/get",
       s"""
-        |{
-        |   "streams": ["fackestream"],
-        |   "infoLevel": "auth"
-        |}
+         |{
+         |   "streams": ["fackestream"],
+         |   "infoLevel": "auth"
+         |}
       """.stripMargin
-      ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+    ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe NotFound
     }
 
@@ -372,32 +374,32 @@ class FullServiceSpec extends TestService {
   it should "handle new signals incoming as AWS SNS messages" in {
     Post(s"/streams/$streamId1/signals",
 
-        """[{
-          |"timestamp":1433169808000,
-          |"price":227.5100,
-          |"change":0E-10,
-          |"id":10,
-          |"value": 1.0000000000,
-          |"signal": 0,
-          |"valueInclFee": 98,
-          |"changeInclFee": -0.002
-          |}]""".stripMargin
+      """[{
+        |"timestamp":1433169808000,
+        |"price":227.5100,
+        |"change":0E-10,
+        |"id":10,
+        |"value": 1.0000000000,
+        |"signal": 0,
+        |"valueInclFee": 98,
+        |"changeInclFee": -0.002
+        |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
 
     Post(s"/streams/$streamId1/signals",
 
-        """[{
-          |"timestamp":1433169808000,
-          |"price":227.5100,
-          |"change":0E-10,
-          |"id":11,
-          |"value": 1.0000000000,
-          |"signal": 1,
-          |"valueInclFee": 98,
-          |"changeInclFee": -0.002
-          |}]""".stripMargin
+      """[{
+        |"timestamp":1433169808000,
+        |"price":227.5100,
+        |"change":0E-10,
+        |"id":11,
+        |"value": 1.0000000000,
+        |"signal": 1,
+        |"valueInclFee": 98,
+        |"changeInclFee": -0.002
+        |}]""".stripMargin
     ).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
     }
@@ -588,6 +590,39 @@ class FullServiceSpec extends TestService {
       assert(respons.contains(streamId1))
       assert(respons.contains("status"))
       assert(respons.startsWith("{"))
+    }
+  }
+
+  it should "generate apikey and retur it" in {
+
+    var apiKeyId = ""
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1"],
+          | "infoLevel": "private"
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(respons.contains("\"apiKeyId\": \"none\","))
+    }
+
+    Get(s"/streams/$streamId1/apikeyid").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(respons.length > 10)
+      apiKeyId = respons
+    }
+
+    Post("/streams/get",
+      s"""{
+          | "streams": ["$streamId1"],
+          | "infoLevel": "private"
+          |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
+      status shouldBe OK
+      val respons = responseAs[String]
+      assert(!respons.contains("\"apiKeyId\": \"none\","))
+      assert(respons.contains(respons))
     }
   }
 
