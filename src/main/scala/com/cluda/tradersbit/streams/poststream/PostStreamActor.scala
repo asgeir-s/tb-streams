@@ -117,7 +117,12 @@ class PostStreamActor(globalRequestID: String, tableName: String) extends Actor 
       }.recover {
         case e: Throwable =>
           log.error(s"[$globalRequestID]: 'DatabaseUtil.putStreamNew()' failed. Error: " + e.toString)
-          s ! HttpResponse(StatusCodes.InternalServerError)
+          if(e.toString.contains("name is already in use")) {
+            s ! HttpResponse(StatusCodes.Conflict, entity = """ {"error": "name is already in use"} """)
+          }
+          else {
+            s ! HttpResponse(StatusCodes.InternalServerError)
+          }
           self ! PoisonPill
       }
 

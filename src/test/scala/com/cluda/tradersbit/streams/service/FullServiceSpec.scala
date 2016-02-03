@@ -87,9 +87,9 @@ class FullServiceSpec extends TestService {
           | "payoutAddress": "publishers-bitcoin-address",
           | "subscriptionPriceUSD": 10
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
-      status shouldBe InternalServerError
+      status shouldBe Conflict
       val respons = responseAs[String]
-      println(respons)
+      assert(respons.contains("name is already in use"))
     }
   }
 
