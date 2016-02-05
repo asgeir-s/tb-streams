@@ -2,7 +2,7 @@ package com.cluda.tradersbit.streams.util
 
 import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.services.sns.AmazonSNSClient
-import com.amazonaws.services.sns.model.{CreateTopicRequest, CreateTopicResult, SubscribeRequest}
+import com.amazonaws.services.sns.model._
 import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,6 +31,11 @@ object AwsSnsUtil {
     else {
       new AmazonSNSClient(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
     }
+  }
+
+  def getAllTopics(snsClient: AmazonSNSClient) = {
+    import scala.collection.JavaConversions._
+    snsClient.listTopics().getTopics.toList
   }
 
 }
