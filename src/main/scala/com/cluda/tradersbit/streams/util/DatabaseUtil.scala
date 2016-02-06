@@ -59,6 +59,7 @@ object DatabaseUtil {
     table.put(
       stream.id.get,
       "name" -> stream.name,
+      "userId" -> stream.streamPrivate.userId,
       "exchange" -> stream.exchange,
       "currencyPair" -> stream.currencyPair,
       "apiKeyId" -> stream.streamPrivate.apiKeyId,
@@ -168,7 +169,8 @@ object DatabaseUtil {
     val sPrivate = StreamPrivate(
       apiKeyId = attrMap.getOrElse("apiKeyId", ""),
       topicArn = attrMap("topicArn"),
-      payoutAddress = attrMap("payoutAddress")
+      payoutAddress = attrMap("payoutAddress"),
+      userId = attrMap.getOrElse("userId", "")
     )
 
     val stream = SStream(

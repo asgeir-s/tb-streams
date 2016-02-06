@@ -4,7 +4,7 @@ import spray.json.DefaultJsonProtocol
 
 object StreamStatsProtocol extends DefaultJsonProtocol {
   implicit val streamStatsFormat = jsonFormat13(StreamStats)
-  implicit val streamPrivateFormat = jsonFormat3(StreamPrivate)
+  implicit val streamPrivateFormat = jsonFormat4(StreamPrivate)
 }
 
 case class SStream(
@@ -85,7 +85,8 @@ case class SStream(
 case class StreamPrivate(
   apiKeyId: String,
   topicArn: String,
-  payoutAddress: String
+  payoutAddress: String,
+  userId: String
   )
 
 case class StreamStats(

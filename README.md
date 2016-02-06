@@ -56,12 +56,11 @@ Microservice used in the tradersbit project.
 	
 ### Test Parameters
     MICROSERVICES_HTTPS=false
-    AWS_LAMBDA_NOTIFY_EMAIL_ARN=arn:aws:lambda:us-west-2:525932482084:function:tbLambdaBackend-email:development
     SERVICE_APIKEY=secret
     LOG_LEVEL=DEBUG
-    AWS_SECRET_ACCESS_KEY=PPwA9sj77iCb0iyaySTiQi7wVhUB13Iwv6pYUSrc
+    AWS_SECRET_KEY=PPwA9sj77iCb0iyaySTiQi7wVhUB13Iwv6pYUSrc
     AWS_ACCESS_KEY_ID=AKIAJPBHJ6UH233F2KKA
-    SIGNALS_SERVICE_ADDRESS=cs-signals-staging.elasticbeanstalk.com
+    SIGNALS_SERVICE_ADDRESS=tb-staging-signals.elasticbeanstalk.com
     AWS_DYNAMO_STREAMS_TABLE_NAME=streams-test
     AWS_DYNAMO_REGION=us-west-2
     AWS_SNS_REGION=us-west-2

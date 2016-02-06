@@ -12,7 +12,7 @@ object TestData {
   val signal0 = Signal(2, 0, timestamp, BigDecimal(400), BigDecimal(1), BigDecimal(1), BigDecimal(1-0.002), BigDecimal(0.998))
   val signalminus1 = Signal(3, -1, timestamp, BigDecimal(200), BigDecimal(-0.5), BigDecimal(0), BigDecimal(-0.502), BigDecimal(0))
 
-  val freshStream = SStream(None, "freshStream", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
+  val freshStream = SStream(None, "freshStream","bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"))
 
   val adoptedCC = ComputeComponents(
     maxDDPrevMax = 0.23,
@@ -33,7 +33,7 @@ object TestData {
     maxDrawDown = 0.20
   )
 
-  val adoptedStream = SStream(Some("Someid2"),"adoptedStream" ,"bitstamp", "btcUSD", 0, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"), None, adoptedStreamStats, adoptedCC)
+  val adoptedStream = SStream(Some("Someid2"),"adoptedStream", "bitstamp", "btcUSD", 0, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"), None, adoptedStreamStats, adoptedCC)
 
 
   val signalSeq = Seq(
@@ -62,7 +62,7 @@ object TestData {
     Signal(1, 1, timestamp - monthMs*6, BigDecimal(100), BigDecimal(0.002), BigDecimal(1), BigDecimal(0), BigDecimal(1))
   )
 
-  val mathStream7 = SStream(Some("math-test"),"mathStream7" , "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream7 = SStream(Some("math-test"), "mathStream7", "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -85,7 +85,7 @@ object TestData {
       maxDDMax = 1.998
     ))
 
-  val mathStream6 = SStream(Some("math-test"), "mathStream6", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream6 = SStream(Some("math-test"), "mathStream6", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -109,7 +109,7 @@ object TestData {
     ))
 
 
-  val mathStream5 = SStream(Some("math-test"), "mathStream5", "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream5 = SStream(Some("math-test"), "mathStream5", "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -132,7 +132,7 @@ object TestData {
       maxDDMax = 1.998
     ))
 
-  val mathStream4 = SStream(Some("math-test"), "mathStream4", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream4 = SStream(Some("math-test"), "mathStream4", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -156,7 +156,7 @@ object TestData {
     ))
 
 
-  val mathStream3 = SStream(Some("math-test"), "mathStream3", "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream3 = SStream(Some("math-test"), "mathStream3", "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -180,7 +180,7 @@ object TestData {
     ))
 
 
-  val mathStream2 = SStream(Some("math-test"), "mathStream2", "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream2 = SStream(Some("math-test"), "mathStream2", "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,
     StreamStats(
       timeOfFirstSignal = timestamp - monthMs*6,
@@ -203,33 +203,33 @@ object TestData {
       maxDDMax = 1
     ))
 
-  val mathStream1 = SStream(Some("math-test"), "mathStream1",  "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
+  val mathStream1 = SStream(Some("math-test"), "mathStream1",  "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"))
 
 
   // fro actor test
 
-  val mathStream7actor = SStream(Some("calculateStatsActorTestStream"), "mathStream7actor", "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream7actor = SStream(Some("calculateStatsActorTestStream"), "mathStream7actor", "bitstamp", "btcUSD", 0, 6, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None, mathStream7.stats, mathStream7.computeComponents)
 
-  val mathStream6actor = SStream(Some("calculateStatsActorTestStream"), "mathStream6actor", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream6actor = SStream(Some("calculateStatsActorTestStream"), "mathStream6actor", "bitstamp", "btcUSD", 1, 5, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None, mathStream6.stats, mathStream6.computeComponents)
 
 
-  val mathStream5actor = SStream(Some("calculateStatsActorTestStream"), "mathStream5actor", "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream5actor = SStream(Some("calculateStatsActorTestStream"), "mathStream5actor", "bitstamp", "btcUSD", 0, 4, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None, mathStream5.stats, mathStream5.computeComponents)
 
-  val mathStream4actor = SStream(Some("calculateStatsActorTestStream"), "mathStream4actor", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream4actor = SStream(Some("calculateStatsActorTestStream"), "mathStream4actor", "bitstamp", "btcUSD", -1, 3, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None,mathStream4.stats, mathStream4.computeComponents)
 
 
-  val mathStream3actor = SStream(Some("calculateStatsActorTestStream"), "mathStream3actor", "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream3actor = SStream(Some("calculateStatsActorTestStream"), "mathStream3actor", "bitstamp", "btcUSD", 0, 2, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None, mathStream3.stats, mathStream3.computeComponents)
 
 
-  val mathStream2actor = SStream(Some("calculateStatsActorTestStream"), "mathStream2actor", "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress"),
+  val mathStream2actor = SStream(Some("calculateStatsActorTestStream"), "mathStream2actor", "bitstamp", "btcUSD", 1, 1, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"),
   None, mathStream2.stats, mathStream2.computeComponents)
 
-  val mathStream1actor = SStream(Some("calculateStatsActorTestStream"), "mathStream1actor", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress"))
+  val mathStream1actor = SStream(Some("calculateStatsActorTestStream"), "mathStream1actor", "bitstamp", "btcUSD", 0, 0, 10, StreamPrivate("apiKey","topicARN", "btcAddress", "auth0|563c81e8ed40b21c52FAKE"))
 
 
   //Signal(id: Long, signal: Int, timestamp: Long, price: BigDecimal, change: BigDecimal, value: BigDecimal)

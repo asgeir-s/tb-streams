@@ -30,7 +30,8 @@ class FullServiceSpec extends TestService {
           | "exchange": "bitfinex",
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
-          | "subscriptionPriceUSD": 5
+          | "subscriptionPriceUSD": 5,
+          | "userId": "auth0|563c81e8ed40b21FAKE"
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
@@ -47,7 +48,8 @@ class FullServiceSpec extends TestService {
           | "exchange": "bitfinex",
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
-          | "subscriptionPriceUSD": 10
+          | "subscriptionPriceUSD": 10,
+          | "userId": "auth0|563c81e8ed40b21FAKE"
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
@@ -69,7 +71,8 @@ class FullServiceSpec extends TestService {
           | "exchange": "bitfinex",
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
-          | "subscriptionPriceUSD": 5
+          | "subscriptionPriceUSD": 5,
+          | "userId": "auth0|563c81e8ed40b21FAKE"
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Accepted
       val respons = responseAs[String]
@@ -85,7 +88,8 @@ class FullServiceSpec extends TestService {
           | "exchange": "bitfinex",
           | "currencyPair": "btcUSD",
           | "payoutAddress": "publishers-bitcoin-address",
-          | "subscriptionPriceUSD": 10
+          | "subscriptionPriceUSD": 10,
+          | "userId": "auth0|563c81e8ed40b21FAKE"
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe Conflict
       val respons = responseAs[String]
@@ -430,6 +434,10 @@ class FullServiceSpec extends TestService {
       status shouldBe OK
       val respons = responseAs[String]
       assert(respons.contains("4.66"))
+      assert(!respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("payoutAddress"))
     }
 
     Post(s"/streams/$streamId1/subscription-price", "40.33").addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
@@ -447,6 +455,10 @@ class FullServiceSpec extends TestService {
       val respons = responseAs[String]
       assert(!respons.contains("4.66"))
       assert(respons.contains("40.33"))
+      assert(!respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("payoutAddress"))
     }
 
   }
@@ -461,7 +473,11 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
+      respons.substring(1, respons.length-1).parseJson.asJsObject.fields("exchange").toString().contains("bitfinex")
       assert(!respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
 
     }
@@ -476,7 +492,11 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
+      respons.substring(1, respons.length-1).parseJson.asJsObject.fields("exchange").toString().contains("bitfinex")
       assert(!respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
 
     }
@@ -493,7 +513,11 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
+      respons.substring(1, respons.length-1).parseJson.asJsObject.fields("exchange").toString().contains("bitfinex")
       assert(respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
       assert(respons.startsWith("["))
     }
@@ -510,8 +534,10 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-
       assert(respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
     }
@@ -527,8 +553,10 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-
       assert(!respons.contains("status"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(!respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
       assert(respons.startsWith("["))
@@ -545,9 +573,11 @@ class FullServiceSpec extends TestService {
           |}""".stripMargin).addHeader(authorizationHeader).addHeader(globalRequestIDHeader) ~> routes ~> check {
       status shouldBe OK
       val respons = responseAs[String]
-
       assert(respons.contains("status"))
       assert(!respons.contains("topicArn"))
+      assert(!respons.contains("userId"))
+      assert(!respons.contains("topicArn"))
+      assert(respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
       assert(respons.startsWith("["))
@@ -567,6 +597,8 @@ class FullServiceSpec extends TestService {
 
       assert(respons.contains("status"))
       assert(respons.contains("topicArn"))
+      assert(respons.contains("userId"))
+      assert(respons.contains("payoutAddress"))
       assert(respons.contains(streamId1))
       assert(respons.contains(streamId2))
       assert(respons.startsWith("["))

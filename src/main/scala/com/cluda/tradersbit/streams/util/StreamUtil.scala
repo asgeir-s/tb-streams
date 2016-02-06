@@ -165,7 +165,8 @@ object StreamUtil {
       StreamPrivate(
         stream.streamPrivate.apiKeyId,
         stream.streamPrivate.topicArn,
-        stream.streamPrivate.payoutAddress),
+        stream.streamPrivate.payoutAddress,
+        stream.streamPrivate.userId),
       Some(signal),
       adoptedStreamStats,
       cComponents)
