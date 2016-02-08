@@ -170,7 +170,7 @@ object DatabaseUtil {
       apiKeyId = attrMap.getOrElse("apiKeyId", ""),
       topicArn = attrMap("topicArn"),
       payoutAddress = attrMap("payoutAddress"),
-      userId = attrMap.getOrElse("userId", "")
+      userId = attrMap.getOrElse("userId", "none")
     )
 
     val stream = SStream(
