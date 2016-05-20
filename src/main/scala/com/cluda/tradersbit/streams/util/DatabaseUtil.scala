@@ -53,9 +53,69 @@ object DatabaseUtil {
     promise.future
   }
 
+  private def tableUpdateutFuture(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
+    val promise = Promise[SStream]()
+    tableUpdateAttributes(table, stream, lastSignal)
+    promise.completeWith(getStreams(table, List(stream.id.get)).map(_.get.last))
+    promise.future
+  }
+
+  def tableUpdateAttributes(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB): Unit = {
+    import spray.json._
+    import SignalJsonProtocol._
+    table.putAttributes(stream.id.get, Seq(
+      "name" -> stream.name,
+      "userId" -> stream.streamPrivate.userId,
+      "exchange" -> stream.exchange,
+      "currencyPair" -> stream.currencyPair,
+      "apiKeyId" -> stream.streamPrivate.apiKeyId,
+      "topicArn" -> stream.streamPrivate.topicArn,
+      "payoutAddress" -> stream.streamPrivate.payoutAddress,
+
+      "idOfLastSignal" -> stream.idOfLastSignal,
+      "subscriptionPriceUSD" -> stream.subscriptionPriceUSD,
+      "status" -> stream.status,
+      "timeOfFirstSignal" -> stream.stats.timeOfFirstSignal,
+      "timeOfLastSignal" -> stream.stats.timeOfLastSignal,
+      "numberOfSignals" -> stream.stats.numberOfSignals,
+      "numberOfClosedTrades" -> stream.stats.numberOfClosedTrades,
+      "numberOfProfitableTrades" -> stream.stats.numberOfProfitableTrades,
+      "numberOfLoosingTrades" -> stream.stats.numberOfLoosingTrades,
+      "accumulatedProfit" -> stream.stats.accumulatedProfit,
+      "accumulatedLoss" -> stream.stats.accumulatedLoss,
+      "buyAndHoldChange" -> stream.stats.buyAndHoldChange,
+      "maxDrawDown" -> stream.stats.maxDrawDown,
+      "allTimeValueIncl" -> stream.stats.allTimeValueIncl,
+      "allTimeValueExcl" -> stream.stats.allTimeValueExcl,
+      "firstPrice" -> stream.stats.firstPrice,
+
+      "maxDDPrevMax" -> stream.computeComponents.maxDDPrevMax,
+      "maxDDPrevMin" -> stream.computeComponents.maxDDPrevMin,
+      "maxDDMax" -> stream.computeComponents.maxDDMax,
+
+      "lastSignal" -> {
+        if (lastSignal.isDefined) {
+          lastSignal.get.toJson.compactPrint
+        }
+        else {
+          "{}".parseJson.compactPrint
+        }
+      }
+    ))
+  }
+
+  /**
+    * should ownly update the specifyed attributes
+    *
+    * @param table
+    * @param stream
+    * @param lastSignal
+    * @param dynamoDB
+    */
   def tableForcePut(table: Table, stream: SStream, lastSignal: Option[Signal])(implicit dynamoDB: DynamoDB): Unit = {
     import spray.json._
     import SignalJsonProtocol._
+
     table.put(
       stream.id.get,
       "name" -> stream.name,
@@ -106,7 +166,8 @@ object DatabaseUtil {
 
 
   def updateStream(table: Table, stream: SStream, lastSignal: Signal)(implicit dynamoDB: DynamoDB, ec: ExecutionContext): Future[SStream] = {
-    tableForcePutFuture(table, stream, Some(lastSignal))
+    tableUpdateutFuture(table, stream, Some(lastSignal))
+
   }
 
   /**
