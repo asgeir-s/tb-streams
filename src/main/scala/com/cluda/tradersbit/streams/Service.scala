@@ -89,59 +89,7 @@ trait Service {
           }
         } ~
           pathPrefix("streams") {
-            pathPrefix("get") {
-              post {
-                entity(as[String]) { streamsGetOptionsString =>
-                  import StreamsGetOptionsJsonProtocol._
-                  val streamsGetOptions = streamsGetOptionsString.parseJson.convertTo[StreamsGetOptions]
-                  complete {
-                    logger.info(s"[$globalRequestID]: Received PST for get streams. Request: " + streamsGetOptions.toJson.compactPrint)
-                    perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
-                      (streamsGetOptions))
-                  }
-                }
-              }
-            } ~
               pathPrefix(Segment) { streamID =>
-                get {
-                  pathEndOrSingleSlash {
-                    parameters('private.as[Boolean].?) { privateInfo =>
-                      complete {
-                        logger.info(s"[$globalRequestID]: Received get stream ($streamID) request.")
-                        perRequestActor[StreamsGetOptions](GetStreamsActor.props(globalRequestID, streamsTableName),
-                          (StreamsGetOptions(List(streamID), if (privateInfo.getOrElse(false)) Some("private") else Some("public"), Some(true))))
-                      }
-                    }
-                  } ~
-                    pathPrefix("apikeyid") {
-                      complete {
-                        logger.info(s"[$globalRequestID]: Recived reguest for new apiKeyId. Stream: $streamID")
-                        perRequestActor[NewApiKeyId](GetApiKeyIdActor.props(globalRequestID, streamsTableName),
-                          NewApiKeyId(streamID))
-                      }
-                    }
-                } ~
-                  pathPrefix("subscription-price") {
-                    post {
-                      entity(as[String]) { newPriceString =>
-                        try {
-                          val newPrice = BigDecimal(newPriceString)
-                          logger.info(s"[$globalRequestID]: Received post new subscription-price for stream ($streamID). " +
-                            s"New price: $newPrice.")
-                          complete(
-                            perRequestActor[ChangeSubscriptionPrice](PostStreamActor.props(globalRequestID, streamsTableName),
-                              ChangeSubscriptionPrice(streamID, newPrice))
-                          )
-                        }
-                        catch {
-                          case e: Throwable =>
-                            logger.error(s"[$globalRequestID]: Received unknown POST subscription-price: $newPriceString. " +
-                              s"Returning 'BadRequest'. For stream: $streamID. Error: " + e.toString)
-                            complete(HttpResponse(BadRequest, entity = "BadRequest"))
-                        }
-                      }
-                    }
-                  } ~
                   pathPrefix("signals") {
                     post {
                       entity(as[String]) { newSignalsString =>
@@ -181,11 +129,6 @@ trait Service {
                         s"Returning 'BadRequest'. Error: " + e.toString)
                       complete(HttpResponse(BadRequest, entity = "BadRequest"))
                   }
-                }
-              } ~
-              get {
-                complete {
-                  perRequestActor[String](GetStreamsActor.props(globalRequestID, streamsTableName), "all")
                 }
               }
           }
