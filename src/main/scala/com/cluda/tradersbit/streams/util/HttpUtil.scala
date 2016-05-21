@@ -24,7 +24,7 @@ object HttpUtil {
     implicit val materializer = ActorMaterializer()
 
     val _outgoingConn = if (isHttps) {
-      Http().outgoingConnectionTls(baseUri)
+      Http().outgoingConnectionHttps(baseUri)
     } else {
       Http().outgoingConnection(baseUri)
     }

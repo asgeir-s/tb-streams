@@ -67,14 +67,13 @@ trait Service {
   }
 
   def auth: RequestContext => Boolean = (ctx: RequestContext) => {
-    ctx.request.getHeader("Authorization").asScala match {
+    ctx.request.headers.find(_.is("authorization")) match {
       case Some(header: HttpHeader) =>
         val thisApiKey = header.value().split(" ")(1)
         thisApiKey.equals(apiKey)
       case None => false
     }
   }
-
 
   val routes = {
     authorize(auth) {
