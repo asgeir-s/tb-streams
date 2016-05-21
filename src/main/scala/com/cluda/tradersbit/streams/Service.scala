@@ -11,8 +11,6 @@ import akka.http.scaladsl.server.RequestContext
 import akka.pattern.ask
 import akka.stream.Materializer
 import akka.util.Timeout
-import com.cluda.tradersbit.streams.getapikeyid.{NewApiKeyId, GetApiKeyIdActor}
-import com.cluda.tradersbit.streams.getstream.GetStreamsActor
 import com.cluda.tradersbit.streams.model.{StreamsGetOptionsJsonProtocol, Signal, SignalJsonProtocol, StreamsGetOptions}
 import com.cluda.tradersbit.streams.postsignal.PostSignalActor
 import com.cluda.tradersbit.streams.poststream.{ChangeSubscriptionPrice, PostStreamActor}
