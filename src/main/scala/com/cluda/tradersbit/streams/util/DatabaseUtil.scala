@@ -3,9 +3,7 @@ package com.cluda.tradersbit.streams.util
 import java.util.UUID
 
 import awscala.dynamodbv2._
-import com.amazonaws.auth.BasicAWSCredentials
 import com.amazonaws.regions.Region
-import com.amazonaws.services.sns.AmazonSNSClient
 import com.cluda.tradersbit.streams.model._
 import com.typesafe.config.Config
 
@@ -64,13 +62,13 @@ object DatabaseUtil {
     import spray.json._
     import SignalJsonProtocol._
     table.putAttributes(stream.id.get, Seq(
-      "name" -> stream.name,
-      "userId" -> stream.streamPrivate.userId,
-      "exchange" -> stream.exchange,
-      "currencyPair" -> stream.currencyPair,
+      //"name" -> stream.name,
+      //"userId" -> stream.streamPrivate.userId,
+      //"exchange" -> stream.exchange,
+      //"currencyPair" -> stream.currencyPair,
       "apiKeyId" -> stream.streamPrivate.apiKeyId,
       "topicArn" -> stream.streamPrivate.topicArn,
-      "payoutAddress" -> stream.streamPrivate.payoutAddress,
+      //"payoutAddress" -> stream.streamPrivate.payoutAddress,
 
       "idOfLastSignal" -> stream.idOfLastSignal,
       "subscriptionPriceUSD" -> stream.subscriptionPriceUSD,
